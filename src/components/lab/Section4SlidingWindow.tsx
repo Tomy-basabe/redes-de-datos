@@ -22,6 +22,7 @@ import {
   processAcksAtSender, 
   SlidingWindowState 
 } from '../../logic/tcpSlidingWindowEngine';
+import { tabeSpringPill } from '../../lib/tabeChoreography';
 
 export const Section4SlidingWindow: React.FC<{ isPresentationMode?: boolean }> = ({ isPresentationMode = false }) => {
   // Parámetros configurables
@@ -100,52 +101,37 @@ export const Section4SlidingWindow: React.FC<{ isPresentationMode?: boolean }> =
           </p>
         </div>
 
-        {/* Escenarios Predeterminados */}
-        <div className="inline-flex p-1 rounded-2xl bg-white/[0.04] border border-white/[0.08] text-xs font-mono">
-          <button
-            onClick={() => {
-              setScenario('normal');
-              handleReset();
-            }}
-            className={`px-3.5 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
-              scenario === 'normal' ? 'bg-cyan-500 text-slate-950 shadow-md' : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            Escenario A: Transmisión Normal
-          </button>
-          <button
-            onClick={() => {
-              setScenario('loss_segment');
-              handleReset();
-            }}
-            className={`px-3.5 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
-              scenario === 'loss_segment' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            Escenario B1: Pérdida de Segmento
-          </button>
-          <button
-            onClick={() => {
-              setScenario('loss_ack');
-              handleReset();
-            }}
-            className={`px-3.5 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
-              scenario === 'loss_ack' ? 'bg-purple-500 text-white shadow-md' : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            Escenario B2: Pérdida de ACK
-          </button>
-          <button
-            onClick={() => {
-              setScenario('corrupt_segment');
-              handleReset();
-            }}
-            className={`px-3.5 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
-              scenario === 'corrupt_segment' ? 'bg-rose-500 text-white shadow-md' : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            Escenario C: Segmento Corrupto
-          </button>
+        {/* Escenarios Predeterminados con Resorte FLIP (Pilar 3) */}
+        <div className="inline-flex p-1 rounded-2xl bg-black/60 border border-white/[0.08] text-xs font-mono relative flex-wrap gap-1">
+          {[
+            { id: 'normal', label: 'Escenario A: Transmisión Normal', color: 'bg-cyan-500/25 border-cyan-400/50 text-cyan-300' },
+            { id: 'loss_segment', label: 'Escenario B1: Pérdida de Segmento', color: 'bg-amber-500/25 border-amber-400/50 text-amber-300' },
+            { id: 'loss_ack', label: 'Escenario B2: Pérdida de ACK', color: 'bg-purple-500/25 border-purple-400/50 text-purple-300' },
+            { id: 'corrupt_segment', label: 'Escenario C: Segmento Corrupto', color: 'bg-rose-500/25 border-rose-400/50 text-rose-300' }
+          ].map((sc) => {
+            const isSelected = scenario === sc.id;
+            return (
+              <button
+                key={sc.id}
+                onClick={() => {
+                  setScenario(sc.id as any);
+                  handleReset();
+                }}
+                className={`relative px-3.5 py-1.5 rounded-xl font-bold transition-colors cursor-pointer select-none tabe-btn-action ${
+                  isSelected ? 'text-white' : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                {isSelected && (
+                  <motion.span
+                    layoutId="sec4-scenario-pill"
+                    transition={tabeSpringPill}
+                    className={`absolute inset-0 rounded-xl border -z-10 shadow-sm ${sc.color}`}
+                  />
+                )}
+                <span className="relative z-10">{sc.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -272,12 +258,12 @@ export const Section4SlidingWindow: React.FC<{ isPresentationMode?: boolean }> =
           </div>
         </div>
 
-        {/* Botonera de Control de Simulación */}
+        {/* Botonera de Control de Simulación con Micro-interacción T.A.B.E. */}
         <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-white/[0.06]">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-              className="px-5 py-2.5 rounded-xl bg-white text-black font-semibold text-xs font-mono flex items-center gap-2 hover:bg-zinc-200 transition-all cursor-pointer shadow-lg"
+              className="px-5 py-2.5 rounded-xl bg-white text-black font-semibold text-xs font-mono flex items-center gap-2 hover:bg-zinc-200 transition-all cursor-pointer shadow-lg tabe-btn-action"
             >
               {isAutoPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
               <span>{isAutoPlaying ? 'Pausar Simulación' : 'Reproducir Flujo'}</span>
@@ -286,7 +272,7 @@ export const Section4SlidingWindow: React.FC<{ isPresentationMode?: boolean }> =
             <button
               onClick={handleNextStep}
               disabled={isAutoPlaying}
-              className="px-4 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] disabled:opacity-40 text-white font-mono text-xs flex items-center gap-1.5 transition-all cursor-pointer border border-white/[0.08]"
+              className="px-4 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] disabled:opacity-40 text-white font-mono text-xs flex items-center gap-1.5 transition-all cursor-pointer border border-white/[0.08] tabe-btn-action"
             >
               <span>Avanzar Paso</span>
               <ChevronRight className="w-4 h-4" />
@@ -294,7 +280,7 @@ export const Section4SlidingWindow: React.FC<{ isPresentationMode?: boolean }> =
 
             <button
               onClick={handleReset}
-              className="p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white transition-colors cursor-pointer border border-white/[0.06]"
+              className="p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white transition-colors cursor-pointer border border-white/[0.06] tabe-btn-action"
             >
               <RotateCcw className="w-4 h-4" />
             </button>

@@ -14,10 +14,16 @@ import { Section8Teardown } from './components/lab/Section8Teardown';
 import { Section9PortsMux } from './components/lab/Section9PortsMux';
 import { Section10TopologyTp1 } from './components/lab/Section10TopologyTp1';
 import { ChevronLeft, ChevronRight, Presentation, Sliders, Layers } from 'lucide-react';
+import { applySectionTheme, SECTION_THEMES, tabeSpringPill } from './lib/tabeChoreography';
 
 export default function App() {
   const [activeSection, setActiveSection] = useState<number>(1);
   const [viewMode, setViewMode] = useState<'exposicion' | 'laboratorio'>('exposicion');
+
+  // Aplicar halo cromático y tema CSS dinámico al cambiar de sección
+  useEffect(() => {
+    applySectionTheme(activeSection);
+  }, [activeSection]);
 
   // Atajos de teclado para navegación fluida en la defensa oral
   useEffect(() => {
@@ -48,13 +54,18 @@ export default function App() {
     setViewMode((prev) => (prev === 'exposicion' ? 'laboratorio' : 'exposicion'));
   };
 
+  const currentTheme = SECTION_THEMES[activeSection] || SECTION_THEMES[1];
+
   return (
     <LenisProvider>
-      <div className="min-h-screen bg-[#07090e] text-[#f5f5f7] flex flex-col font-sans selection:bg-cyan-400 selection:text-black relative">
-        {/* Fondo Dinámico de Red con Partículas */}
+      <div className="min-h-screen bg-[#07090e] text-[#f5f5f7] flex flex-col font-sans selection:bg-cyan-400 selection:text-black relative overflow-x-hidden">
+        {/* Pilar 2: Halo Ambiental Superior con Paleta Cromática Reactiva */}
+        <div className="tabe-ambient-glow fixed top-0 left-0 right-0 h-[520px] -z-10" />
+
+        {/* Fondo Dinámico de Red de Nodos y Partículas */}
         <CanvasNetworkHero />
 
-        {/* Barra de Navegación del Laboratorio (10 Secciones, Timer 15m, Modos) */}
+        {/* Barra Superior con Coreografía T.A.B.E. (10 Secciones, Timer 15m, Modos) */}
         <LabNavbar
           activeSection={activeSection}
           onSelectSection={(idx) => setActiveSection(idx)}
@@ -64,13 +75,14 @@ export default function App() {
 
         {/* Contenedor Principal de la Sección Activa */}
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 relative z-10">
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="popLayout">
             <motion.div
               key={activeSection}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.35, ease: 'easeOut' }}
+              initial={{ opacity: 0, y: 14, scale: 0.99 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.99, transition: { duration: 0.15 } }}
+              transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+              className="tabe-stage-module"
             >
               {activeSection === 1 && <Section1Intro onStartLab={handleStartLab} />}
               {activeSection === 2 && <Section2TcpVsUdp />}
@@ -86,31 +98,49 @@ export default function App() {
           </AnimatePresence>
         </main>
 
-        {/* Barra Flotante de Navegación Rápida (Pie de Pantalla) */}
+        {/* Barra Flotante de Navegación Rápida Estilo Dock Apple (Pie de Pantalla) */}
         <div className="sticky bottom-4 z-40 max-w-xl mx-auto w-full px-4 pointer-events-none">
-          <div className="apple-glass p-2.5 rounded-full border border-white/[0.12] shadow-2xl flex items-center justify-between pointer-events-auto backdrop-blur-2xl bg-black/80">
+          <div className="apple-glass p-2.5 rounded-full border border-white/[0.12] shadow-2xl flex items-center justify-between pointer-events-auto backdrop-blur-2xl bg-[#07090e]/85">
             <button
               onClick={() => setActiveSection((prev) => (prev > 1 ? prev - 1 : 10))}
-              className="p-2 rounded-full bg-white/[0.05] hover:bg-white/[0.12] text-zinc-300 hover:text-white transition-all flex items-center gap-1 text-xs font-mono"
+              className="p-2 rounded-full bg-white/[0.05] hover:bg-white/[0.12] text-zinc-300 hover:text-white transition-all flex items-center gap-1 text-xs font-mono tabe-btn-action cursor-pointer"
               title="Sección Anterior (Flecha Izquierda)"
             >
               <ChevronLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Anterior</span>
             </button>
 
-            {/* Indicador de Sección y Acceso Directo */}
+            {/* Indicador de Sección Activa con Resorte */}
             <div className="flex items-center gap-2">
               <span className="text-xs font-mono text-zinc-400">
-                Sección <strong className="text-cyan-300 font-bold">{activeSection}</strong> de 10
+                Sección{' '}
+                <strong 
+                  style={{ color: currentTheme.accentHex }}
+                  className="font-bold transition-colors"
+                >
+                  {activeSection}
+                </strong>{' '}
+                de 10
               </span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-white/[0.06] text-zinc-400 hidden sm:inline">
+              <span 
+                style={{
+                  backgroundColor: currentTheme.badgeBg,
+                  borderColor: currentTheme.badgeBorder,
+                  color: currentTheme.badgeText
+                }}
+                className="text-[10px] font-mono px-2 py-0.5 rounded-md border hidden sm:inline transition-colors"
+              >
                 {LAB_SECTIONS[activeSection - 1]?.short}
               </span>
             </div>
 
             <button
               onClick={() => setActiveSection((prev) => (prev < 10 ? prev + 1 : 1))}
-              className="p-2 rounded-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold transition-all flex items-center gap-1 text-xs font-mono shadow-md shadow-cyan-500/20"
+              style={{
+                background: `linear-gradient(135deg, rgba(${currentTheme.primaryRgb}, 1) 0%, rgba(${currentTheme.secondaryRgb}, 1) 100%)`,
+                boxShadow: `0 4px 16px -2px rgba(${currentTheme.primaryRgb}, 0.35)`
+              }}
+              className="p-2 rounded-full text-slate-950 font-bold transition-all flex items-center gap-1 text-xs font-mono tabe-btn-action cursor-pointer"
               title="Siguiente Sección (Flecha Derecha)"
             >
               <span className="hidden sm:inline">Siguiente</span>
@@ -126,7 +156,7 @@ export default function App() {
               Universidad Tecnológica Nacional • Facultad Regional Mendoza • Ingeniería en Sistemas de Información
             </div>
             <div className="text-zinc-500">
-              Cátedra: Redes de Información / Redes de Datos • Cátedra: Esp. Prof. Raúl Tonelli / Prof. Roberto Cutuli
+              Cátedra: Redes de Información / Redes de Datos • Docentes: Esp. Prof. Raúl Tonelli / Prof. Roberto Cutuli
             </div>
             <div className="text-zinc-600 text-[11px]">
               Proyecto Oficial: Diseño de Red LAN Escuela 4-025 Los Corralitos • Exposición 13 de Noviembre

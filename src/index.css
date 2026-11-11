@@ -3,19 +3,26 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --section-accent-rgb: 34, 211, 238; /* Cyan por defecto */
+    --section-secondary-rgb: 59, 130, 246; /* Azul por defecto */
+  }
+
   html {
-    background-color: #000000;
+    background-color: #07090e;
     color: #f5f5f7;
     scroll-behavior: smooth;
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
   }
 
   body {
-    background-color: #000000;
+    background-color: #07090e;
     color: #f5f5f7;
     overflow-x: hidden;
     margin: 0;
     padding: 0;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
 
   h1, h2, h3, h4 {
@@ -27,50 +34,183 @@
 /* Apple Smooth Scrollbar */
 ::-webkit-scrollbar {
   width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #000000;
+  background: #07090e;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 9999px;
-  border: 1px solid #000000;
+  border: 1px solid rgba(0, 0, 0, 0.4);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #38bdf8;
+  background: rgba(34, 211, 238, 0.5);
 }
 
-/* Apple Glass Panel */
+/* ========================================================
+   T.A.B.E. UI CHOREOGRAPHY ENGINE (Apple / Linear / Notion)
+   ======================================================== */
+
+/* Halo Ambiental de Iluminación Reactiva Superior */
+.tabe-ambient-glow {
+  background: radial-gradient(
+    ellipse 85% 45% at 50% -10%,
+    rgba(var(--section-accent-rgb), 0.18) 0%,
+    rgba(var(--section-secondary-rgb), 0.08) 45%,
+    transparent 80%
+  );
+  pointer-events: none;
+  transition: all 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Cristales Neomórficos Apple Glass */
 .apple-glass {
-  background: rgba(255, 255, 255, 0.025);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
+  background: rgba(13, 16, 23, 0.72);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .apple-glass-interactive {
-  background: rgba(255, 255, 255, 0.025);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
+  background: rgba(13, 16, 23, 0.72);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .apple-glass-interactive:hover {
-  background: rgba(255, 255, 255, 0.045);
-  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(22, 27, 38, 0.82);
+  border-color: rgba(var(--section-accent-rgb), 0.35);
   transform: translateY(-2px);
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.8);
+  box-shadow: 
+    0 16px 36px -12px rgba(0, 0, 0, 0.7),
+    0 0 24px -6px rgba(var(--section-accent-rgb), 0.15);
 }
 
-/* Apple Typography Enhancements */
+/* PILAR 1 & 2: COREOGRAFÍA GLOBAL EN 3 ETAPAS */
+@keyframes tabeStageModule {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0) scale(0.982);
+    filter: saturate(0.15) brightness(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: translate3d(0, -1.5px, 0) scale(1.003);
+    filter: saturate(0.4) brightness(1);
+  }
+  78% {
+    opacity: 1;
+    transform: translate3d(0, 0.5px, 0) scale(0.999);
+    filter: saturate(1.2) brightness(1.02);
+    box-shadow:
+      0 12px 30px -10px rgba(var(--section-accent-rgb), 0.16),
+      0 0 0 1px rgba(var(--section-accent-rgb), 0.18);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: saturate(1) brightness(1);
+  }
+}
+
+.tabe-stage-module {
+  animation: tabeStageModule 0.44s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--module-idx, 0) * 45ms);
+}
+
+/* Pulso de Impacto Cromático para Badges e Íconos */
+@keyframes tabeColorPulse {
+  0% {
+    transform: scale(0.94);
+    filter: saturate(0.4);
+  }
+  50% {
+    transform: scale(1.08);
+    filter: saturate(1.35) brightness(1.08);
+  }
+  100% {
+    transform: scale(1);
+    filter: saturate(1) brightness(1);
+  }
+}
+
+.tabe-color-impact-badge {
+  animation: tabeColorPulse 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--module-idx, 0) * 45ms + 120ms);
+}
+
+/* PILAR 4: ACCIÓN TÁCTIL UNIVERSAL DE BOTONES */
+.tabe-btn-action {
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.15s ease,
+              border-color 0.15s ease;
+  user-select: none;
+}
+
+.tabe-btn-action:active {
+  transform: scale(0.965);
+}
+
+@keyframes tabeButtonActionPulse {
+  0% { transform: scale(0.965); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.tabe-btn-clicked {
+  animation: tabeButtonActionPulse 0.22s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* APERTURA Y CIERRE DE PANELES CON CASCADA INTERNA */
+@keyframes tabeContentOpen {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0) scale(0.975);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.tabe-content-open {
+  animation: tabeContentOpen 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Cascada Progresiva de Botones Internos */
+@keyframes tabeInnerBtnCascade {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.tabe-inner-btn-cascade {
+  animation: tabeInnerBtnCascade 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(30ms + var(--btn-idx, 0) * 20ms);
+}
+
+/* Píldora Activa con Resorte Apple */
+.tabe-active-pill {
+  box-shadow: 0 4px 14px -3px rgba(var(--section-accent-rgb), 0.35);
+}
+
+/* Tipografía Apple */
 .apple-headline {
   font-family: 'Plus Jakarta Sans', sans-serif;
   letter-spacing: -0.035em;
-  line-height: 1.05;
+  line-height: 1.08;
 }
 
 .apple-subheadline {
@@ -78,7 +218,7 @@
   line-height: 1.45;
 }
 
-/* Apple Gradient Texts */
+/* Degradados de Texto Apple */
 .apple-text-gradient-silver {
   background: linear-gradient(180deg, #FFFFFF 0%, #A1A1A6 100%);
   -webkit-background-clip: text;
@@ -97,11 +237,14 @@
   -webkit-text-fill-color: transparent;
 }
 
-/* Ambient Radial Glows */
-.apple-glow-cyan {
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
+.apple-text-gradient-amber {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #ea580c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.apple-glow-purple {
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, transparent 70%);
+.apple-text-gradient-purple {
+  background: linear-gradient(135deg, #c084fc 0%, #a855f7 50%, #6366f1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }

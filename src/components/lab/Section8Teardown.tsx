@@ -70,12 +70,12 @@ export const Section8Teardown: React.FC = () => {
           </p>
         </div>
 
-        {/* Controles de Paso a Paso */}
+        {/* Controles de Paso a Paso con Micro-interacción T.A.B.E. */}
         <div className="flex items-center gap-2">
           <button
             onClick={() => setStep((s) => Math.max(0, s - 1))}
             disabled={step === 0}
-            className="px-3.5 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] disabled:opacity-30 text-white font-mono text-xs flex items-center gap-1.5 cursor-pointer border border-white/[0.08]"
+            className="px-3.5 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] disabled:opacity-30 text-white font-mono text-xs flex items-center gap-1.5 cursor-pointer border border-white/[0.08] tabe-btn-action"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Paso Anterior</span>
@@ -84,7 +84,7 @@ export const Section8Teardown: React.FC = () => {
           <button
             onClick={() => setStep((s) => Math.min(steps.length - 1, s + 1))}
             disabled={step === steps.length - 1}
-            className="px-4 py-2 rounded-xl bg-white text-black font-semibold text-xs font-mono flex items-center gap-1.5 hover:bg-zinc-200 disabled:opacity-30 cursor-pointer shadow-lg"
+            className="px-4 py-2 rounded-xl bg-white text-black font-semibold text-xs font-mono flex items-center gap-1.5 hover:bg-zinc-200 disabled:opacity-30 cursor-pointer shadow-lg tabe-btn-action"
           >
             <span>Siguiente ({step + 1}/{steps.length})</span>
             <ChevronRight className="w-3.5 h-3.5" />
@@ -92,7 +92,7 @@ export const Section8Teardown: React.FC = () => {
 
           <button
             onClick={() => setStep(0)}
-            className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white cursor-pointer border border-white/[0.06]"
+            className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white cursor-pointer border border-white/[0.06] tabe-btn-action"
           >
             <RotateCcw className="w-4 h-4" />
           </button>

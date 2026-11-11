@@ -99,11 +99,11 @@ export const Section6CongestionSawtooth: React.FC = () => {
           </p>
         </div>
 
-        {/* Acciones de Inyección de Pérdida */}
+        {/* Acciones de Inyección de Pérdida con Micro-interacción T.A.B.E. */}
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => injectLossAtCurrent('3dup_ack')}
-            className="px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5"
+            className="px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 tabe-btn-action"
           >
             <AlertTriangle className="w-3.5 h-3.5" />
             <span>Pérdida por 3 Dup ACKs (Fast Retransmit)</span>
@@ -111,7 +111,7 @@ export const Section6CongestionSawtooth: React.FC = () => {
 
           <button
             onClick={() => injectLossAtCurrent('timeout')}
-            className="px-4 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5"
+            className="px-4 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 tabe-btn-action"
           >
             <AlertTriangle className="w-3.5 h-3.5" />
             <span>Pérdida por Timeout (RTO)</span>
@@ -216,12 +216,12 @@ export const Section6CongestionSawtooth: React.FC = () => {
           </div>
         </div>
 
-        {/* Controles de Reproducción y Avance por RTT */}
+        {/* Controles de Reproducción y Avance por RTT con Micro-interacción T.A.B.E. */}
         <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsPlaying(!isPlaying)}
-              className="px-5 py-2.5 rounded-xl bg-white text-black font-semibold text-xs font-mono flex items-center gap-2 hover:bg-zinc-200 transition-all cursor-pointer shadow-lg"
+              className="px-5 py-2.5 rounded-xl bg-white text-black font-semibold text-xs font-mono flex items-center gap-2 hover:bg-zinc-200 transition-all cursor-pointer shadow-lg tabe-btn-action"
             >
               {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
               <span>{isPlaying ? 'Pausar Simulación' : 'Reproducir Sierra'}</span>
@@ -230,7 +230,7 @@ export const Section6CongestionSawtooth: React.FC = () => {
             <button
               onClick={() => setActiveRttIdx((prev) => Math.min(points.length - 1, prev + 1))}
               disabled={isPlaying || activeRttIdx >= points.length - 1}
-              className="px-4 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] disabled:opacity-40 text-white font-mono text-xs flex items-center gap-1.5 transition-all cursor-pointer border border-white/[0.08]"
+              className="px-4 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] disabled:opacity-40 text-white font-mono text-xs flex items-center gap-1.5 transition-all cursor-pointer border border-white/[0.08] tabe-btn-action"
             >
               <span>Avanzar 1 RTT</span>
               <ChevronRight className="w-4 h-4" />
@@ -241,7 +241,7 @@ export const Section6CongestionSawtooth: React.FC = () => {
                 setActiveRttIdx(0);
                 setIsPlaying(false);
               }}
-              className="p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white transition-colors cursor-pointer border border-white/[0.06]"
+              className="p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white transition-colors cursor-pointer border border-white/[0.06] tabe-btn-action"
             >
               <RotateCcw className="w-4 h-4" />
             </button>

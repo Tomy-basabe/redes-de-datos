@@ -92,6 +92,17 @@ export const Section1Intro: React.FC<{ onStartLab: () => void }> = ({ onStartLab
             </p>
           </div>
         </div>
+
+        {/* Botón de Inicio con Micro-interacción T.A.B.E. */}
+        <div className="pt-4 flex justify-end">
+          <button
+            onClick={onStartLab}
+            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-400 to-emerald-400 text-slate-950 font-bold text-xs font-mono flex items-center gap-2 hover:scale-[1.02] shadow-xl shadow-cyan-500/20 cursor-pointer tabe-btn-action"
+          >
+            <span>Iniciar Demostración: Sección 2 (TCP vs UDP)</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   );

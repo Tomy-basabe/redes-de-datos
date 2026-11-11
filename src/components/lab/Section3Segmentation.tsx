@@ -14,6 +14,7 @@ import {
   Zap,
   Info
 } from 'lucide-react';
+import { tabeSpringPill } from '../../lib/tabeChoreography';
 
 interface SegmentChunk {
   index: number;
@@ -347,32 +348,42 @@ export const Section3Segmentation: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
+          <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-black/60 border border-white/[0.08] relative">
             <button
               onClick={() => {
                 setSelectedHeaderTab('tcp');
                 setSelectedField('seq');
               }}
-              className={`px-4 py-1.5 rounded-xl text-xs font-mono transition-all ${
-                selectedHeaderTab === 'tcp'
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 font-bold'
-                  : 'text-zinc-400 hover:text-white'
+              className={`relative px-4 py-1.5 rounded-xl text-xs font-mono transition-colors cursor-pointer select-none tabe-btn-action ${
+                selectedHeaderTab === 'tcp' ? 'text-white font-bold' : 'text-zinc-400 hover:text-white'
               }`}
             >
-              Cabecera TCP (20-60 Bytes)
+              {selectedHeaderTab === 'tcp' && (
+                <motion.span
+                  layoutId="sec3-header-pill"
+                  transition={tabeSpringPill}
+                  className="absolute inset-0 rounded-xl bg-cyan-500/20 border border-cyan-400/40 -z-10 shadow-sm"
+                />
+              )}
+              <span className="relative z-10">Cabecera TCP (20-60 Bytes)</span>
             </button>
             <button
               onClick={() => {
                 setSelectedHeaderTab('udp');
                 setSelectedField('ports');
               }}
-              className={`px-4 py-1.5 rounded-xl text-xs font-mono transition-all ${
-                selectedHeaderTab === 'udp'
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 font-bold'
-                  : 'text-zinc-400 hover:text-white'
+              className={`relative px-4 py-1.5 rounded-xl text-xs font-mono transition-colors cursor-pointer select-none tabe-btn-action ${
+                selectedHeaderTab === 'udp' ? 'text-white font-bold' : 'text-zinc-400 hover:text-white'
               }`}
             >
-              Cabecera UDP (8 Bytes Fijos)
+              {selectedHeaderTab === 'udp' && (
+                <motion.span
+                  layoutId="sec3-header-pill"
+                  transition={tabeSpringPill}
+                  className="absolute inset-0 rounded-xl bg-emerald-500/20 border border-emerald-400/40 -z-10 shadow-sm"
+                />
+              )}
+              <span className="relative z-10">Cabecera UDP (8 Bytes Fijos)</span>
             </button>
           </div>
         </div>

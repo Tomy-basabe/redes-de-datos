@@ -17,6 +17,7 @@ import {
   Radio
 } from 'lucide-react';
 import { SERVICIOS_TRANSPORTE } from '../../data/topologyTp1';
+import { tabeSpringPill } from '../../lib/tabeChoreography';
 
 interface PacketSim {
   id: number;
@@ -137,38 +138,34 @@ export const Section2TcpVsUdp: React.FC = () => {
           </p>
         </div>
 
-        {/* Pestañas de Vista */}
-        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
-          <button
-            onClick={() => setActiveTab('comparativa')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-mono transition-all ${
-              activeTab === 'comparativa'
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 font-bold'
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            Matriz Técnica
-          </button>
-          <button
-            onClick={() => setActiveTab('simulador')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-mono transition-all ${
-              activeTab === 'simulador'
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 font-bold'
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            Simulador Dual
-          </button>
-          <button
-            onClick={() => setActiveTab('servicios_tp1')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-mono transition-all ${
-              activeTab === 'servicios_tp1'
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 font-bold'
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            Servicios TP1
-          </button>
+        {/* Pestañas de Vista con Física de Resorte FLIP (Pilar 3) */}
+        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-black/60 border border-white/[0.08] relative">
+          {(['comparativa', 'simulador', 'servicios_tp1'] as const).map((tab) => {
+            const isSelected = activeTab === tab;
+            const labels: Record<string, string> = {
+              comparativa: 'Matriz Técnica',
+              simulador: 'Simulador Dual',
+              servicios_tp1: 'Servicios TP1'
+            };
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`relative px-3.5 py-1.5 rounded-xl text-xs font-mono transition-colors cursor-pointer select-none tabe-btn-action ${
+                  isSelected ? 'text-white font-bold' : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                {isSelected && (
+                  <motion.span
+                    layoutId="sec2-tab-pill"
+                    transition={tabeSpringPill}
+                    className="absolute inset-0 rounded-xl bg-cyan-500/20 border border-cyan-400/40 -z-10 shadow-sm"
+                  />
+                )}
+                <span className="relative z-10">{labels[tab]}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 

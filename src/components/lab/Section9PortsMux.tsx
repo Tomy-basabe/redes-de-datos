@@ -16,6 +16,7 @@ import {
   Shuffle
 } from 'lucide-react';
 import { SERVICIOS_TRANSPORTE } from '../../data/topologyTp1';
+import { tabeSpringPill } from '../../lib/tabeChoreography';
 
 interface ActiveSocket {
   id: string;
@@ -100,38 +101,33 @@ export const Section9PortsMux: React.FC = () => {
           </p>
         </div>
 
-        {/* Selector de Escenario */}
-        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
-          <button
-            onClick={() => { setSelectedFlow('reverse_proxy'); resetFlow(); }}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-mono transition-all ${
-              selectedFlow === 'reverse_proxy'
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 font-bold'
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            Doble Salto Nginx $\rightarrow$ Apache
-          </button>
-          <button
-            onClick={() => { setSelectedFlow('multi_client'); resetFlow(); }}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-mono transition-all ${
-              selectedFlow === 'multi_client'
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 font-bold'
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            Multiplexación en Host
-          </button>
-          <button
-            onClick={() => { setSelectedFlow('dhcp_relay'); resetFlow(); }}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-mono transition-all ${
-              selectedFlow === 'dhcp_relay'
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 font-bold'
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            DHCP Relay en C9200
-          </button>
+        {/* Selector de Escenario con Resorte FLIP (Pilar 3) */}
+        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-black/60 border border-white/[0.08] relative">
+          {[
+            { id: 'reverse_proxy', label: 'Doble Salto Nginx → Apache' },
+            { id: 'multi_client', label: 'Multiplexación en Host' },
+            { id: 'dhcp_relay', label: 'DHCP Relay en C9200' }
+          ].map((item) => {
+            const isSelected = selectedFlow === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => { setSelectedFlow(item.id as any); resetFlow(); }}
+                className={`relative px-3.5 py-1.5 rounded-xl text-xs font-mono transition-colors cursor-pointer select-none tabe-btn-action ${
+                  isSelected ? 'text-white font-bold' : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                {isSelected && (
+                  <motion.span
+                    layoutId="sec9-flow-pill"
+                    transition={tabeSpringPill}
+                    className="absolute inset-0 rounded-xl bg-cyan-500/20 border border-cyan-400/40 -z-10 shadow-sm"
+                  />
+                )}
+                <span className="relative z-10">{item.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 

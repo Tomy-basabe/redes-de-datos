@@ -39,11 +39,11 @@ export const Section5Checksum: React.FC = () => {
           </p>
         </div>
 
-        {/* Botón de Corrupción Interactiva */}
+        {/* Botón de Corrupción Interactiva con Micro-interacción T.A.B.E. */}
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsCorrupted(!isCorrupted)}
-            className={`px-5 py-2.5 rounded-full text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-5 py-2.5 rounded-full text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-2 tabe-btn-action ${
               isCorrupted
                 ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30'
                 : 'bg-white/[0.06] hover:bg-white/[0.12] text-zinc-300 border border-white/[0.08]'
@@ -56,7 +56,7 @@ export const Section5Checksum: React.FC = () => {
           {isCorrupted && (
             <button
               onClick={() => setIsCorrupted(false)}
-              className="p-2.5 rounded-full bg-white/[0.06] text-zinc-400 hover:text-white cursor-pointer"
+              className="p-2.5 rounded-full bg-white/[0.06] text-zinc-400 hover:text-white cursor-pointer tabe-btn-action"
             >
               <RotateCcw className="w-4 h-4" />
             </button>

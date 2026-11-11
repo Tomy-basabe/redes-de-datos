@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Server, 
   Shield, 
@@ -13,6 +13,7 @@ import {
   Database
 } from 'lucide-react';
 import { VLANS_TP1, SERVICIOS_TRANSPORTE, EQUIPAMIENTO_TP1, ISPS_TP1 } from '../../data/topologyTp1';
+import { tabeSpringPill } from '../../lib/tabeChoreography';
 
 export const Section10TopologyTp1: React.FC = () => {
   const [selectedDevice, setSelectedDevice] = useState<string>('c9200');
@@ -48,7 +49,7 @@ export const Section10TopologyTp1: React.FC = () => {
         </p>
       </div>
 
-      {/* Selector de Dispositivos de Infraestructura del TP1 */}
+      {/* Selector de Dispositivos de Infraestructura del TP1 con Resorte FLIP */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {EQUIPAMIENTO_TP1.map((eq) => {
           const isSelected = selectedDevice === eq.id;
@@ -56,12 +57,19 @@ export const Section10TopologyTp1: React.FC = () => {
             <div
               key={eq.id}
               onClick={() => setSelectedDevice(eq.id)}
-              className={`p-6 rounded-[28px] border transition-all cursor-pointer ${
+              className={`p-6 rounded-[28px] border transition-all cursor-pointer relative select-none tabe-btn-action ${
                 isSelected
-                  ? 'apple-glass border-cyan-400/80 bg-white/[0.06] shadow-xl shadow-cyan-500/10'
+                  ? 'apple-glass border-emerald-400/80 bg-white/[0.06] shadow-xl shadow-emerald-500/10'
                   : 'apple-glass border-white/[0.06] hover:border-white/[0.14]'
               }`}
             >
+              {isSelected && (
+                <motion.span
+                  layoutId="sec10-device-glow"
+                  transition={tabeSpringPill}
+                  className="absolute inset-0 rounded-[28px] border border-emerald-400/60 -z-10 shadow-lg shadow-emerald-500/15"
+                />
+              )}
               <div className="flex items-center gap-3 mb-2">
                 {eq.id === 'c9200' && <RouterIcon className="w-6 h-6 text-cyan-400" />}
                 {eq.id === 'meraki' && <Shield className="w-6 h-6 text-rose-400" />}
