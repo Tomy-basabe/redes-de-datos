@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="es" class="bg-[#F5F5F7] text-slate-900">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checksum TCP y Detección de Errores | Escuela 4-025 Los Corralitos</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+            sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Integración fluida dentro de la carcasa Cupertino Clara (sin scroll interno ni corte) */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: auto;
+      overflow-x: hidden;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+      background-color: #F5F5F7;
+      color: #1D1D1F;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", system-ui, sans-serif;
+    }
+
+    h1, h2, h3, h4, button {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", system-ui, sans-serif;
+    }
+
+    /* 16 columnas para la fila de bits */
+    .grid-cols-16 {
+      display: grid;
+      grid-template-columns: repeat(16, minmax(0, 1fr));
+    }
+
+    /* Bits interactivos estilo teclado Apple */
+    .bit-pill {
+      min-width: 17px;
+      height: 23px;
+      font-size: 11px;
+      line-height: 1;
+      transition: transform 0.14s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.14s ease, background-color 0.14s ease;
+      font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+      cursor: pointer;
+    }
+    .bit-pill:hover {
+      transform: scale(1.16) translateY(-1px);
+      z-index: 10;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.14);
+    }
+
+    /* Botones táctiles Apple Sequoia */
+    .apple-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.18s ease, filter 0.18s ease, background 0.18s ease;
+    }
+    .apple-btn:active {
+      transform: scale(0.975);
+    }
+    .apple-btn-primary {
+      background: linear-gradient(180deg, #0A84FF 0%, #0071E3 100%);
+      color: #ffffff;
+      border: 1px solid #0066CC;
+      box-shadow: 0 4px 12px rgba(0, 113, 227, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.38);
+    }
+    .apple-btn-primary:hover {
+      filter: brightness(1.04);
+      box-shadow: 0 6px 16px rgba(0, 113, 227, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.42);
+    }
+    .apple-btn-rose {
+      background: linear-gradient(180deg, #FF453A 0%, #D70015 100%);
+      color: #ffffff;
+      border: 1px solid #C20013;
+      box-shadow: 0 4px 12px rgba(215, 0, 21, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    }
+    .apple-btn-rose:hover {
+      filter: brightness(1.04);
+      box-shadow: 0 6px 16px rgba(215, 0, 21, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+    .apple-btn-emerald {
+      background: linear-gradient(180deg, #34C759 0%, #248A3D 100%);
+      color: #ffffff;
+      border: 1px solid #1E7333;
+      box-shadow: 0 4px 12px rgba(36, 138, 61, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    }
+    .apple-btn-secondary {
+      background: linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%);
+      color: #1D1D1F;
+      border: 1px solid rgba(0, 0, 0, 0.14);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    }
+    .apple-btn-secondary:hover {
+      background: #FFFFFF;
+      border-color: rgba(0, 0, 0, 0.22);
+    }
+
+    /* Animación del paquete viajando de izquierda a derecha */
+    @keyframes flowPacket {
+      0% { left: 0%; opacity: 0; }
+      6% { opacity: 1; }
+      94% { opacity: 1; }
+      100% { left: 100%; opacity: 0; }
+    }
+    .transit-pulse {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 10px;
+      border-radius: 9999px;
+      animation: flowPacket 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+  </style>
+</head>
+
+<body class="bg-[#F5F5F7] text-slate-900 p-4 sm:p-5">
+
+  <div class="space-y-4">
+    <!-- ========================================================================= -->
+    <!-- ENCABEZADO CUPERTINO UNIFICADO                                            -->
+    <!-- ========================================================================= -->
+    <header class="rounded-[22px] bg-white/95 border border-black/[0.06] px-4 sm:px-5 py-3.5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-[14px] bg-gradient-to-b from-[#0A84FF] to-[#0071E3] border border-[#0066CC] text-white flex items-center justify-center font-mono font-extrabold text-xs tracking-wider shrink-0 shadow-[0_6px_14px_rgba(0,113,227,0.28),inset_0_1px_0_rgba(255,255,255,0.35)]">
+          TCP
+        </div>
+        <div>
+          <h1 class="text-lg sm:text-xl font-bold tracking-tight text-[#1D1D1F] leading-tight">
+            Checksum TCP y Detección de Errores (Complemento a Uno)
+          </h1>
+          <p class="text-xs text-[#515154]">
+            Escuela 4-025 Los Corralitos • UTN FRM • Verificación de integridad de extremo a extremo
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 shrink-0">
+        <span class="text-xs text-[#3A3A3C] font-sans font-medium bg-[#F5F5F7] px-3 py-1 rounded-full border border-black/[0.08]">
+          Atajo: <kbd class="px-1.5 py-0.5 bg-white text-[#1D1D1F] rounded border border-black/[0.15] font-mono font-bold">Espacio</kbd> Simular / Restaurar
+        </span>
+      </div>
+    </header>
+
+    <!-- ======================================================================= -->
+    <!-- BLOQUE 1: RECORRIDO DEL PAQUETE (PRINCIPIO TERMINAL A TERMINAL)         -->
+    <!-- ======================================================================= -->
+    <section class="bg-white/95 border border-black/[0.07] rounded-[22px] p-4 shadow-sm">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-3">
+        <span class="text-xs sm:text-sm font-bold text-[#1D1D1F]">
+          Recorrido del paquete en la red (Principio Terminal a Terminal)
+        </span>
+        <span class="text-xs text-[#515154] font-mono bg-[#F5F5F7] px-2.5 py-1 rounded-lg border border-black/[0.07]">
+          Cálculo: Pseudocabecera IP + Cabecera TCP + Datos
+        </span>
+      </div>
+
+      <!-- Fila de Equipos con Línea Continua -->
+      <div class="relative py-1">
+        <div class="hidden md:block absolute left-[8%] right-[8%] top-1/2 -translate-y-1/2 h-1.5 bg-slate-200 rounded-full z-0 overflow-hidden pointer-events-none">
+          <div class="h-full w-full bg-gradient-to-r from-sky-500 via-indigo-500 to-emerald-500 opacity-75"></div>
+          <div id="routePacketPulse" class="transit-pulse bg-sky-600 ring-2 ring-white shadow-sm"></div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5 sm:gap-3 relative z-10">
+          <!-- 1. PC Alumno -->
+          <div class="bg-white border border-sky-200 rounded-xl p-2.5 flex flex-col items-center text-center shadow-xs">
+            <div class="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 border border-sky-200 flex items-center justify-center mb-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+            </div>
+            <span class="text-xs font-bold text-sky-800">PC Alumno</span>
+            <span class="text-[11px] text-[#3A3A3C] font-mono">172.16.20.10</span>
+            <span class="text-[10.5px] font-medium text-[#515154]">VLAN 20</span>
+          </div>
+
+          <!-- 2. AP Cisco Aironet -->
+          <div id="cardWifi" class="bg-white border border-slate-200 rounded-xl p-2.5 flex flex-col items-center text-center shadow-xs transition-colors">
+            <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center mb-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path></svg>
+            </div>
+            <span class="text-xs font-bold text-[#1D1D1F]">AP Aironet</span>
+            <span class="text-[11px] text-amber-700 font-mono font-semibold">Wi-Fi 1832i</span>
+            <span class="text-[10.5px] font-medium text-[#515154]">Acceso RF</span>
+          </div>
+
+          <!-- 3. Switch Acceso L2 -->
+          <div class="bg-white border border-slate-200 rounded-xl p-2.5 flex flex-col items-center text-center shadow-xs">
+            <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center mb-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2" stroke-width="2"></rect><circle cx="7" cy="12" r="1" fill="currentColor"></circle><circle cx="11" cy="12" r="1" fill="currentColor"></circle><circle cx="15" cy="12" r="1" fill="currentColor"></circle><circle cx="19" cy="12" r="1" fill="currentColor"></circle></svg>
+            </div>
+            <span class="text-xs font-bold text-[#1D1D1F]">Switch Acceso</span>
+            <span class="text-[11px] text-[#3A3A3C] font-mono">Omada L2</span>
+            <span class="text-[10.5px] font-medium text-[#515154]">PoE+ Cat6</span>
+          </div>
+
+          <!-- 4. Switch Core L3 Cisco C9200 -->
+          <div id="cardCore" class="bg-white border border-slate-200 rounded-xl p-2.5 flex flex-col items-center text-center shadow-xs transition-colors">
+            <div class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center justify-center mb-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+            </div>
+            <span class="text-xs font-bold text-indigo-800">Core C9200</span>
+            <span class="text-[11px] text-[#3A3A3C] font-mono">Cisco 24P</span>
+            <span class="text-[10.5px] font-medium text-[#515154]">Ruteo SVI</span>
+          </div>
+
+          <!-- 5. Firewall Cisco Meraki MX100 -->
+          <div class="bg-white border border-slate-200 rounded-xl p-2.5 flex flex-col items-center text-center shadow-xs">
+            <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center mb-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+            </div>
+            <span class="text-xs font-bold text-[#1D1D1F]">Meraki MX100</span>
+            <span class="text-[11px] text-[#3A3A3C] font-mono">Firewall</span>
+            <span class="text-[10.5px] font-medium text-[#515154]">Seguridad</span>
+          </div>
+
+          <!-- 6. Servidor Nginx -->
+          <div class="bg-white border border-emerald-200 rounded-xl p-2.5 flex flex-col items-center text-center shadow-xs">
+            <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center mb-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path></svg>
+            </div>
+            <span class="text-xs font-bold text-emerald-800">Servidor Nginx</span>
+            <span class="text-[11px] text-[#3A3A3C] font-mono">172.16.10.12:443</span>
+            <span class="text-[10.5px] font-medium text-[#515154]">VLAN 10</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pie explicativo -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-[#515154] mt-3 pt-2.5 border-t border-black/[0.06]">
+        <span><strong class="text-[#1D1D1F]">Principio Terminal a Terminal:</strong> Capa 2 detecta errores de enlace, pero no protege alteraciones en memoria de routers o ruido Wi-Fi.</span>
+        <span class="text-[#1D1D1F] font-medium">Salida a Internet: Balanceador MikroTik (NAT)</span>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- BLOQUE 2: SIMULADOR INTERACTIVO EMISOR / CANAL / RECEPTOR               -->
+    <!-- ======================================================================= -->
+    <section class="grid grid-cols-1 lg:grid-cols-[1fr_195px_1fr] gap-3 items-stretch">
+
+      <!-- COLUMNA IZQUIERDA: EMISOR (PC ALUMNO) -->
+      <div class="bg-white/95 border border-black/[0.07] rounded-[22px] p-3.5 flex flex-col justify-between shadow-sm">
+        <div>
+          <div class="flex items-center justify-between pb-2 border-b border-black/[0.06] mb-2.5">
+            <h2 class="text-xs sm:text-sm font-bold text-[#1D1D1F]">
+              Emisor — PC Alumno (172.16.20.10)
+            </h2>
+            <span class="text-[11px] text-[#0071E3] bg-[#EAF3FF] border border-[#0071E3]/20 px-2.5 py-0.5 rounded-full font-mono font-semibold">
+              Cálculo de Checksum
+            </span>
+          </div>
+
+          <p class="text-xs text-[#515154] mb-2.5">
+            Haz clic en cualquier bit (<code class="font-mono text-[#1D1D1F]">0</code> / <code class="font-mono text-[#0071E3]">1</code>) para modificar los 16 bits y recalcular al instante.
+          </p>
+
+          <!-- 3 Filas del Emisor -->
+          <div class="space-y-1.5" id="emisorWordsContainer"></div>
+        </div>
+
+        <!-- Matemáticas del Emisor -->
+        <div class="mt-3 bg-[#F5F5F7] rounded-xl p-3 border border-black/[0.07] space-y-2 font-mono text-xs">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[#3A3A3C] font-sans text-xs">Suma de las 3 palabras:</span>
+            <div class="flex items-center gap-2">
+              <span id="emisorRawHex" class="text-[#1D1D1F] font-bold">0x1BC8F</span>
+              <span id="emisorRawBin" class="text-[#515154] text-[11px]">1 1011 1100 1000 1111</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-black/[0.08] text-xs">
+            <span class="text-amber-700 font-sans font-semibold text-xs">Acarreo circular (+carry):</span>
+            <span id="emisorSumCarryFormula" class="text-[#0071E3] font-bold">0xBC8F + 1 = 0xBC90</span>
+          </div>
+
+          <div class="flex items-center justify-between pt-1.5 border-t border-black/[0.08]">
+            <span class="text-emerald-700 font-sans font-bold text-xs">Complemento a 1 (Inversión NOT):</span>
+            <div class="text-right">
+              <span id="emisorChecksumHex" class="text-emerald-700 font-extrabold text-[13px] tracking-wider">0x436F</span>
+              <span id="emisorChecksumBin" class="text-emerald-700 text-[11px] tracking-wider ml-1.5">0100 0011 0110 1111</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CANAL CENTRAL -->
+      <div class="bg-white/95 border border-black/[0.07] rounded-[22px] p-3.5 flex flex-col items-center justify-center gap-3 text-center shadow-sm">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-[#515154]">
+          Canal de transmisión
+        </span>
+
+        <!-- Estado del Paquete -->
+        <div id="transitPacketBox" class="w-full p-2.5 rounded-xl bg-[#F5F5F7] border border-black/[0.07] flex flex-col items-center justify-center transition-colors">
+          <div id="transitIconWrap" class="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 mb-1.5">
+            <svg id="transitIconClean" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <svg id="transitIconCorrupt" class="w-4 h-4 hidden text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+          </div>
+          <span id="transitBadgeTitle" class="text-xs font-bold text-emerald-700">Paquete íntegro</span>
+          <div id="transitBitDetail" class="mt-1 hidden px-2 py-0.5 rounded bg-rose-100 border border-rose-300 text-[11px] text-rose-800 font-mono font-bold">
+            Bit 0 mutó 1 → 0
+          </div>
+        </div>
+
+        <!-- Botones de Control -->
+        <div class="w-full space-y-1.5">
+          <button id="btnCorrupt" onclick="toggleCorruption()" class="apple-btn apple-btn-rose w-full py-2 px-3 text-xs">
+            <span>⚡ Simular bit corrupto</span>
+          </button>
+
+          <button onclick="restoreCleanPacket()" class="apple-btn apple-btn-secondary w-full py-1.5 px-3 text-xs">
+            <span>Restaurar sano</span>
+          </button>
+
+          <button onclick="randomizePacket()" class="apple-btn apple-btn-primary w-full py-1.5 px-3 text-xs">
+            <span>Generar nuevos datos</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- COLUMNA DERECHA: RECEPTOR (SERVIDOR NGINX) -->
+      <div id="receptorContainer" class="bg-white/95 border border-black/[0.07] rounded-[22px] p-3.5 flex flex-col justify-between transition-colors shadow-sm">
+        <div>
+          <div class="flex items-center justify-between pb-2 border-b border-black/[0.06] mb-2.5">
+            <h2 class="text-xs sm:text-sm font-bold text-[#1D1D1F]">
+              Receptor — Servidor Nginx (172.16.10.12)
+            </h2>
+            <span id="receptorStatusBadge" class="text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+              Válido (0xFFFF)
+            </span>
+          </div>
+
+          <!-- 3 Palabras Recibidas + 1 Fila de Checksum Recibido -->
+          <div class="space-y-1.5" id="receptorWordsContainer"></div>
+        </div>
+
+        <!-- Verificación de Suma en el Receptor -->
+        <div class="mt-3 bg-[#F5F5F7] rounded-xl p-3 border border-black/[0.07] space-y-2 font-mono text-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-[#3A3A3C] font-sans text-xs">Suma (Palabras + Checksum recibido):</span>
+            <span id="receptorSumHex" class="font-extrabold text-[#1D1D1F] text-[13px]">0xFFFF</span>
+          </div>
+
+          <!-- 16 bits de resultado -->
+          <div class="py-0.5">
+            <div id="receiverBitsGrid" class="grid-cols-16 gap-0.5 w-full"></div>
+          </div>
+
+          <!-- Banner de Decisión -->
+          <div id="receptorDecisionBanner" class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-300 flex items-center justify-between gap-2 transition-colors">
+            <div class="flex items-center gap-2">
+              <span id="receptorDecisionIcon" class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
+                ✓
+              </span>
+              <div>
+                <span id="receptorDecisionTitle" class="text-xs font-bold text-emerald-900 block leading-tight">
+                  Segmento válido (0xFFFF)
+                </span>
+                <span id="receptorDecisionDesc" class="text-[11px] font-sans text-emerald-900 block leading-snug">
+                  16 unos binarios. Integridad confirmada, datos entregados a HTTPS.
+                </span>
+              </div>
+            </div>
+            <span id="receptorDecisionTag" class="text-[10.5px] font-mono px-2.5 py-0.5 rounded-md bg-emerald-600 text-white font-bold shrink-0">
+              ACEPTADO
+            </span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- BLOQUE 3: REACCIÓN ANTE EL ERROR (TCP VS UDP)                           -->
+    <!-- ======================================================================= -->
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+      <!-- TARJETA 1: TCP -->
+      <div id="tcpReactionCard" class="bg-white/95 border border-black/[0.07] rounded-[22px] p-4 flex flex-col justify-between transition-colors shadow-sm space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-black/[0.06] pb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-[#1D1D1F]">Servicios TCP:</span>
+            <span class="text-xs text-[#0071E3] font-mono font-semibold">Nginx :443 · Apache :8080 · Samba :445</span>
+          </div>
+          <span class="text-[11px] text-[#515154] font-mono bg-[#F5F5F7] px-2.5 py-0.5 rounded-full border border-black/[0.07]">
+            Ausencia de NAK
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div class="bg-[#F5F5F7] p-3 rounded-xl border border-black/[0.06]">
+            <span class="text-xs font-bold text-rose-700 block mb-1">1. Descarta en silencio</span>
+            <p class="text-[11.5px] text-[#3A3A3C] leading-snug">
+              El servidor descarta el segmento dañado sin generar NAK ni enviar confirmación (ACK).
+            </p>
+          </div>
+
+          <div class="bg-[#F5F5F7] p-3 rounded-xl border border-black/[0.06]">
+            <span class="text-xs font-bold text-[#0071E3] block mb-1">2. Emisor retransmite</span>
+            <p class="text-[11.5px] text-[#3A3A3C] leading-snug">
+              Al vencerse el temporizador (Timeout) o recibir 3 ACKs duplicados, la PC retransmite el segmento.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TARJETA 2: UDP -->
+      <div class="bg-white/95 border border-black/[0.07] rounded-[22px] p-4 flex flex-col justify-between shadow-sm space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-black/[0.06] pb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-[#1D1D1F]">Servicios UDP:</span>
+            <span class="text-xs text-amber-700 font-mono font-semibold">Windows DHCP :67/68 · Cisco OpenDNS :53</span>
+          </div>
+          <span class="text-[11px] text-[#515154] font-mono bg-[#F5F5F7] px-2.5 py-0.5 rounded-full border border-black/[0.07]">
+            Sin retransmisión L4
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div class="bg-[#F5F5F7] p-3 rounded-xl border border-black/[0.06]">
+            <span class="text-xs font-bold text-amber-700 block mb-1">1. Calcula y descarta</span>
+            <p class="text-[11.5px] text-[#3A3A3C] leading-snug">
+              Verifica el checksum de 16 bits. Si hay error, descarta el datagrama para no procesar datos erróneos.
+            </p>
+          </div>
+
+          <div class="bg-[#F5F5F7] p-3 rounded-xl border border-black/[0.06]">
+            <span class="text-xs font-bold text-[#1D1D1F] block mb-1">2. Resuelve la aplicación</span>
+            <p class="text-[11.5px] text-[#3A3A3C] leading-snug">
+              Capa 4 no ofrece retransmisiones; la aplicación cliente reintenta la consulta si no recibe respuesta.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT: MATEMÁTICA Y CONTROL                                          -->
+  <!-- ========================================================================= -->
+  <script>
+    let words = [
+      { id: 'w0', name: 'Pseudocabecera IP', val: 0xAC10 },
+      { id: 'w1', name: 'Cabecera TCP', val: 0xC93A },
+      { id: 'w2', name: 'Datos (Payload)', val: 0x4745 }
+    ];
+
+    let isCorrupted = false;
+    let corruptTarget = { wordIdx: 2, bitIdx: 0 };
+
+    function toBin16(num) {
+      return (num & 0xFFFF).toString(2).padStart(16, '0');
+    }
+
+    function toHex16(num) {
+      return '0x' + (num & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
+    }
+
+    function add1sComplement(arr) {
+      let rawSum = arr.reduce((acc, v) => acc + (v & 0xFFFF), 0);
+      let carriesCount = 0;
+      while (rawSum > 0xFFFF) {
+        let carry = rawSum >> 16;
+        let lower = rawSum & 0xFFFF;
+        rawSum = lower + carry;
+        carriesCount += carry;
+      }
+      return { sum: rawSum & 0xFFFF, rawSum, carriesCount };
+    }
+
+    function render() {
+      // 1. EMISOR: CÁLCULO DE CHECKSUM
+      const emisorValues = words.map(w => w.val);
+      const rawSumDirect = emisorValues.reduce((a, b) => a + b, 0);
+      const emisorComp = add1sComplement(emisorValues);
+      const checksumVal = (~emisorComp.sum) & 0xFFFF;
+
+      const emisorContainer = document.getElementById('emisorWordsContainer');
+      emisorContainer.innerHTML = words.map((w, wIdx) => {
+        const binStr = toBin16(w.val);
+        const nibbles = [
+          binStr.slice(0, 4),
+          binStr.slice(4, 8),
+          binStr.slice(8, 12),
+          binStr.slice(12, 16)
+        ];
+
+        return `
+          <div class="bg-[#F5F5F7] py-1.5 px-2.5 rounded-xl border border-black/[0.07] flex items-center justify-between gap-2 text-xs">
+            <span class="font-semibold text-[#1D1D1F] text-xs w-28 truncate">${w.name}</span>
+            <span class="font-mono text-xs font-bold text-[#0071E3] w-14 text-center">${toHex16(w.val)}</span>
+            <div class="flex items-center gap-1 font-mono text-[11px]">
+              ${nibbles.map((nib, nibIdx) => `
+                <div class="flex gap-0.5">
+                  ${nib.split('').map((bit, bIdx) => {
+                    const globalBitIdx = 15 - (nibIdx * 4 + bIdx);
+                    return `
+                      <span onclick="toggleWordBit(${wIdx}, ${globalBitIdx})" 
+                            title="Alternar bit #${globalBitIdx}" 
+                            class="bit-pill px-0.5 flex items-center justify-center rounded-md text-[11px] font-bold ${bit === '1' ? 'bg-sky-100 text-sky-900 border border-sky-300' : 'bg-white text-[#515154] border border-slate-300'}">
+                        ${bit}
+                      </span>
+                    `;
+                  }).join('')}
+                </div>
+              `).join('<span class="text-[#515154] font-mono">·</span>')}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('emisorRawHex').innerText = '0x' + rawSumDirect.toString(16).toUpperCase();
+      document.getElementById('emisorRawBin').innerText = rawSumDirect.toString(2);
+      document.getElementById('emisorSumCarryFormula').innerText = 
+        `${toHex16(rawSumDirect & 0xFFFF)} + ${rawSumDirect >> 16} = ${toHex16(emisorComp.sum)}`;
+      document.getElementById('emisorChecksumHex').innerText = toHex16(checksumVal);
+      document.getElementById('emisorChecksumBin').innerText = 
+        toBin16(checksumVal).match(/.{1,4}/g).join(' ');
+
+      // 2. CANAL DE TRANSMISIÓN
+      const transitBox = document.getElementById('transitPacketBox');
+      const transitIconWrap = document.getElementById('transitIconWrap');
+      const iconClean = document.getElementById('transitIconClean');
+      const iconCorrupt = document.getElementById('transitIconCorrupt');
+      const transitTitle = document.getElementById('transitBadgeTitle');
+      const transitDetail = document.getElementById('transitBitDetail');
+      const cardWifi = document.getElementById('cardWifi');
+      const cardCore = document.getElementById('cardCore');
+      const tcpCard = document.getElementById('tcpReactionCard');
+      const routePulse = document.getElementById('routePacketPulse');
+
+      if (isCorrupted) {
+        if (routePulse) routePulse.className = 'transit-pulse bg-rose-600 ring-2 ring-white shadow-sm';
+        transitBox.className = "w-full p-2.5 rounded-xl bg-rose-50 border border-rose-300 flex flex-col items-center justify-center transition-colors";
+        transitIconWrap.className = "w-8 h-8 rounded-full bg-rose-100 border border-rose-300 flex items-center justify-center text-rose-600 mb-1.5";
+        iconClean.classList.add('hidden');
+        iconCorrupt.classList.remove('hidden');
+        transitTitle.innerText = "Bit alterado en tránsito";
+        transitTitle.className = "text-xs font-bold text-rose-700";
+        transitDetail.classList.remove('hidden');
+        transitDetail.innerText = `Datos: Bit #${corruptTarget.bitIdx} invertido (1 → 0)`;
+
+        cardWifi.className = "bg-rose-50 border border-rose-300 rounded-xl p-2 flex flex-col items-center text-center shadow-xs transition-colors";
+        cardCore.className = "bg-rose-50 border border-rose-300 rounded-xl p-2 flex flex-col items-center text-center shadow-xs transition-colors";
+        tcpCard.className = "bg-rose-50/75 border border-rose-300 rounded-[22px] p-3.5 flex flex-col justify-between transition-colors shadow-sm space-y-2.5";
+      } else {
+        if (routePulse) routePulse.className = 'transit-pulse bg-sky-600 ring-2 ring-white shadow-sm';
+        transitBox.className = "w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center justify-center transition-colors";
+        transitIconWrap.className = "w-8 h-8 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 mb-1.5";
+        iconClean.classList.remove('hidden');
+        iconCorrupt.classList.add('hidden');
+        transitTitle.innerText = "Paquete íntegro";
+        transitTitle.className = "text-xs font-bold text-emerald-700";
+        transitDetail.classList.add('hidden');
+
+        cardWifi.className = "bg-white border border-slate-200 rounded-xl p-2 flex flex-col items-center text-center shadow-xs transition-colors";
+        cardCore.className = "bg-white border border-slate-200 rounded-xl p-2 flex flex-col items-center text-center shadow-xs transition-colors";
+        tcpCard.className = "bg-white/95 border border-black/[0.07] rounded-[22px] p-3.5 flex flex-col justify-between transition-colors shadow-sm space-y-2.5";
+      }
+
+      // 3. RECEPTOR: 3 PALABRAS + CHECKSUM
+      const receivedWords = words.map((w, idx) => {
+        let val = w.val;
+        if (isCorrupted && idx === corruptTarget.wordIdx) {
+          val = val ^ (1 << corruptTarget.bitIdx);
+        }
+        return { ...w, receivedVal: val, isCorruptWord: (isCorrupted && idx === corruptTarget.wordIdx) };
+      });
+
+      const allReceivedVals = [...receivedWords.map(w => w.receivedVal), checksumVal];
+      const receptorComp = add1sComplement(allReceivedVals);
+      const isSegmentValid = (receptorComp.sum === 0xFFFF);
+
+      const receptorWordsContainer = document.getElementById('receptorWordsContainer');
+      receptorWordsContainer.innerHTML = `
+        ${receivedWords.map((w) => {
+          const binStr = toBin16(w.receivedVal);
+          const nibbles = [
+            binStr.slice(0, 4),
+            binStr.slice(4, 8),
+            binStr.slice(8, 12),
+            binStr.slice(12, 16)
+          ];
+
+          return `
+            <div class="${w.isCorruptWord ? 'bg-rose-50 border-rose-300' : 'bg-[#F5F5F7] border-black/[0.07]'} py-1.5 px-2.5 rounded-xl border flex items-center justify-between gap-2 text-xs">
+              <span class="font-semibold ${w.isCorruptWord ? 'text-rose-800' : 'text-[#1D1D1F]'} text-xs w-28 truncate">
+                ${w.name} ${w.isCorruptWord ? '⚡ [MUTADO]' : ''}
+              </span>
+              <span class="font-mono text-xs font-bold ${w.isCorruptWord ? 'text-rose-700' : 'text-[#3A3A3C]'} w-14 text-center">
+                ${toHex16(w.receivedVal)}
+              </span>
+              <div class="flex items-center gap-1 font-mono text-[11px]">
+                ${nibbles.map((nib, nibIdx) => `
+                  <div class="flex gap-0.5">
+                    ${nib.split('').map((bit, bIdx) => {
+                      const globalBitIdx = 15 - (nibIdx * 4 + bIdx);
+                      const isThisFlippedBit = (w.isCorruptWord && globalBitIdx === corruptTarget.bitIdx);
+                      return `
+                        <span class="bit-pill px-0.5 flex items-center justify-center rounded-md text-[11px] font-bold ${isThisFlippedBit ? 'bg-rose-600 text-white animate-pulse' : (bit === '1' ? 'bg-slate-200 text-[#1D1D1F] border border-slate-300' : 'bg-white text-[#515154] border border-slate-300')}">
+                          ${bit}
+                        </span>
+                      `;
+                    }).join('')}
+                  </div>
+                `).join('<span class="text-[#515154] font-mono">·</span>')}
+              </div>
+            </div>
+          `;
+        }).join('')}
+
+        <!-- Fila de Checksum Recibido -->
+        <div class="bg-emerald-50/90 py-1.5 px-2.5 rounded-xl border border-emerald-200 flex items-center justify-between gap-2 text-xs">
+          <span class="font-bold text-emerald-800 text-xs w-28 truncate">+ Checksum Recibido</span>
+          <span class="font-mono text-xs font-bold text-emerald-700 w-14 text-center">${toHex16(checksumVal)}</span>
+          <div class="flex items-center gap-1 font-mono text-[11px]">
+            ${[
+              toBin16(checksumVal).slice(0, 4),
+              toBin16(checksumVal).slice(4, 8),
+              toBin16(checksumVal).slice(8, 12),
+              toBin16(checksumVal).slice(12, 16)
+            ].map(nib => `
+              <div class="flex gap-0.5">
+                ${nib.split('').map(b => `
+                  <span class="bit-pill px-0.5 flex items-center justify-center rounded-md text-[11px] font-bold ${b === '1' ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' : 'bg-white text-[#515154] border border-slate-300'}">
+                    ${b}
+                  </span>
+                `).join('')}
+              </div>
+            `).join('<span class="text-[#515154] font-mono">·</span>')}
+          </div>
+        </div>
+      `;
+
+      // 16 bits en la suma del receptor
+      const receptorSumBin = toBin16(receptorComp.sum);
+      const receiverBitsGrid = document.getElementById('receiverBitsGrid');
+      receiverBitsGrid.innerHTML = receptorSumBin.split('').map((bit, bIdx) => {
+        const bitWeight = 15 - bIdx;
+        const isOne = (bit === '1');
+        return `
+          <div class="flex flex-col items-center">
+            <span title="Bit #${bitWeight}: ${bit}" class="w-full h-6 flex items-center justify-center text-[11px] font-mono font-bold rounded-md ${isOne ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' : 'bg-rose-600 text-white border border-rose-700 font-extrabold animate-pulse'}">
+              ${bit}
+            </span>
+          </div>
+        `;
+      }).join('');
+
+      const receptorContainer = document.getElementById('receptorContainer');
+      const receptorStatusBadge = document.getElementById('receptorStatusBadge');
+      const receptorSumHex = document.getElementById('receptorSumHex');
+      const decisionBanner = document.getElementById('receptorDecisionBanner');
+      const decisionIcon = document.getElementById('receptorDecisionIcon');
+      const decisionTitle = document.getElementById('receptorDecisionTitle');
+      const decisionDesc = document.getElementById('receptorDecisionDesc');
+      const decisionTag = document.getElementById('receptorDecisionTag');
+
+      receptorSumHex.innerText = toHex16(receptorComp.sum);
+
+      if (isSegmentValid) {
+        receptorContainer.className = "bg-white/95 border border-black/[0.07] rounded-[22px] p-3.5 flex flex-col justify-between transition-colors shadow-sm";
+        receptorStatusBadge.className = "text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full";
+        receptorStatusBadge.innerText = "Válido (0xFFFF)";
+
+        decisionBanner.className = "p-2.5 rounded-xl bg-emerald-50 border border-emerald-300 flex items-center justify-between gap-2 transition-colors";
+        decisionIcon.className = "w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0";
+        decisionIcon.innerText = "✓";
+        decisionTitle.className = "text-xs font-bold text-emerald-900 block leading-tight";
+        decisionTitle.innerText = "Segmento válido (0xFFFF)";
+        decisionDesc.className = "text-[11px] font-sans text-emerald-900 block leading-snug";
+        decisionDesc.innerText = "16 unos binarios. Integridad confirmada, datos entregados a HTTPS.";
+        decisionTag.className = "text-[10.5px] font-mono px-2.5 py-0.5 rounded-md bg-emerald-600 text-white font-bold shrink-0";
+        decisionTag.innerText = "ACEPTADO";
+      } else {
+        receptorContainer.className = "bg-rose-50/40 border border-rose-300 rounded-[22px] p-3.5 flex flex-col justify-between transition-colors shadow-sm";
+        receptorStatusBadge.className = "text-[11px] font-mono font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full";
+        receptorStatusBadge.innerText = "Error detectado";
+
+        decisionBanner.className = "p-2.5 rounded-xl bg-rose-50 border border-rose-300 flex items-center justify-between gap-2 transition-colors";
+        decisionIcon.className = "w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center font-bold text-xs shrink-0";
+        decisionIcon.innerText = "✕";
+        decisionTitle.className = "text-xs font-bold text-rose-900 block leading-tight";
+        decisionTitle.innerText = `Error detectado (${toHex16(receptorComp.sum)} ≠ 0xFFFF)`;
+        decisionDesc.className = "text-[11px] font-sans text-rose-900 block leading-snug";
+        decisionDesc.innerText = "Aparece un '0' en la suma. Checksum inválido: Nginx descarta en silencio.";
+        decisionTag.className = "text-[10.5px] font-mono px-2.5 py-0.5 rounded-md bg-rose-600 text-white font-bold shrink-0";
+        decisionTag.innerText = "DESCARTADO";
+      }
+    }
+
+    function toggleWordBit(wordIdx, bitIdx) {
+      words[wordIdx].val = words[wordIdx].val ^ (1 << bitIdx);
+      render();
+    }
+
+    function toggleCorruption() {
+      isCorrupted = !isCorrupted;
+      render();
+    }
+
+    function restoreCleanPacket() {
+      isCorrupted = false;
+      render();
+    }
+
+    function randomizePacket() {
+      words[0].val = (0xAC00 | Math.floor(Math.random() * 255));
+      words[1].val = Math.floor(49152 + Math.random() * 16000);
+      words[2].val = Math.floor(0x1000 + Math.random() * 0xE000);
+      isCorrupted = false;
+      render();
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        toggleCorruption();
+      } else if (e.key === 'r' || e.key === 'R') {
+        restoreCleanPacket();
+      } else if (e.key === 'd' || e.key === 'D') {
+        randomizePacket();
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      render();
+    });
+  </script>
+</body>
+</html>

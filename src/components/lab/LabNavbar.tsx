@@ -24,16 +24,13 @@ interface LabNavbarProps {
 }
 
 export const LAB_SECTIONS = [
-  { id: 1, title: '1. Introducción L4', short: '1. Intro L4' },
-  { id: 2, title: '2. TCP vs UDP', short: '2. TCP/UDP' },
-  { id: 3, title: '3. Segmentación & RFC', short: '3. Segmentos' },
-  { id: 4, title: '4. Ventana de Recepción (rwnd)', short: '4. Ventana rwnd' },
-  { id: 5, title: '5. Checksum & Errores', short: '5. Checksum' },
-  { id: 6, title: '6. Congestión & Sierra (cwnd)', short: '6. Sierra cwnd' },
-  { id: 7, title: '7. 3-Way Handshake', short: '7. Handshake' },
-  { id: 8, title: '8. 4-Way Teardown', short: '8. Teardown' },
-  { id: 9, title: '9. Puertos & Multiplexación', short: '9. Puertos' },
-  { id: 10, title: '10. Aplicación TP1 Corralitos', short: '10. TP1 Escuela' }
+  { id: 1, title: '1. TCP vs UDP', short: '1. TCP/UDP' },
+  { id: 2, title: '2. Puertos y Multiplexación', short: '2. Puertos & Mux' },
+  { id: 3, title: '3. 3-Way Handshake y RST', short: '3. Handshake & RST' },
+  { id: 4, title: '4. 4-Way Teardown', short: '4. Teardown' },
+  { id: 5, title: '5. Congestión y Flujo', short: '5. Congestión & Flujo' },
+  { id: 6, title: '6. Checksum TCP (Andrés)', short: '6. Checksum' },
+  { id: 7, title: '7. ¡FIN! Concierto', short: '7. FIN 🎉' }
 ];
 
 export const LabNavbar: React.FC<LabNavbarProps> = ({
@@ -73,37 +70,38 @@ export const LabNavbar: React.FC<LabNavbarProps> = ({
   const currentTheme = SECTION_THEMES[activeSection] || SECTION_THEMES[1];
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-[#07090e]/90 backdrop-blur-2xl border-b border-white/[0.08] transition-colors">
+    <header className="sticky top-0 z-50 w-full bg-white/84 backdrop-blur-2xl border-b border-black/[0.08] transition-colors shadow-[0_6px_24px_-14px_rgba(15,23,42,0.12)]">
       {/* Fila Superior: Marca Institucional, Timer y Controles de Modo */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
         {/* Identidad de Laboratorio */}
-        <div 
+        <div
           onClick={() => onSelectSection(1)}
-          className="flex items-center gap-2.5 cursor-pointer select-none group tabe-btn-action"
+          className="flex items-center gap-3 cursor-pointer select-none group"
         >
-          <div 
-            style={{ 
-              background: `linear-gradient(135deg, rgba(${currentTheme.primaryRgb}, 1) 0%, rgba(${currentTheme.secondaryRgb}, 1) 100%)` 
+          <div
+            style={{
+              background: `linear-gradient(180deg, rgba(${currentTheme.primaryRgb}, 0.92) 0%, rgba(${currentTheme.secondaryRgb}, 1) 100%)`,
+              boxShadow: `inset 0 1px 0 rgba(255,255,255,0.35), 0 2px 8px -2px rgba(${currentTheme.primaryRgb}, 0.45)`
             }}
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-950 font-black text-xs shadow-lg transition-transform group-hover:scale-105"
+            className="w-8 h-8 rounded-[10px] flex items-center justify-center text-white font-bold text-xs tracking-tight transition-transform group-hover:scale-105"
           >
             L4
           </div>
           <div>
-            <div className="text-xs sm:text-sm font-extrabold text-white tracking-tight flex items-center gap-1.5 font-display">
-              <span>LABORATORIO CAPA DE TRANSPORTE</span>
-              <span 
+            <div className="text-[13px] sm:text-sm font-bold text-[#1D1D1F] tracking-tight flex items-center gap-2">
+              <span>Laboratorio Capa de Transporte</span>
+              <span
                 style={{
                   backgroundColor: currentTheme.badgeBg,
                   borderColor: currentTheme.badgeBorder,
                   color: currentTheme.badgeText
                 }}
-                className="hidden md:inline-block text-[10px] font-mono px-2 py-0.5 rounded border transition-colors"
+                className="hidden md:inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full border transition-colors"
               >
-                TP1 Escuela 4-025 Los Corralitos
+                TP1 • Escuela 4-025 Los Corralitos
               </span>
             </div>
-            <div className="text-[10px] text-zinc-400 font-mono hidden sm:block">
+            <div className="text-[11px] font-medium text-[#515154] hidden sm:block">
               UTN FRM • Redes de Información • Tonelli / Cutuli
             </div>
           </div>
@@ -112,15 +110,15 @@ export const LabNavbar: React.FC<LabNavbarProps> = ({
         {/* Zona Central / Derecha: Temporizador 15 Minutos y Modo Exposición */}
         <div className="flex items-center gap-2.5">
           {/* Temporizador de Exposición 15:00 */}
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/[0.03] border border-white/[0.08] font-mono text-xs text-zinc-300">
-            <Clock 
-              style={{ color: currentTheme.accentHex }} 
-              className="w-3.5 h-3.5 transition-colors" 
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-[13px] bg-[#F5F5F7] border border-black/[0.07] text-xs text-[#1D1D1F] shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)]">
+            <Clock
+              style={{ color: currentTheme.accentHex }}
+              className="w-3.5 h-3.5 transition-colors"
             />
-            <span className="font-bold">{timerDisplay}</span>
+            <span className="font-mono font-bold tracking-tight">{timerDisplay}</span>
             <button
               onClick={() => setTimerRunning(!timerRunning)}
-              className="ml-1 text-[10px] px-1.5 py-0.5 rounded bg-white/[0.06] hover:bg-white/[0.12] text-zinc-200 cursor-pointer tabe-btn-action"
+              className="apple-btn apple-btn-secondary ml-0.5 text-[11px] px-2.5 py-0.5 rounded-lg"
             >
               {timerRunning ? 'Pausar' : 'Iniciar'}
             </button>
@@ -130,20 +128,20 @@ export const LabNavbar: React.FC<LabNavbarProps> = ({
                 setTimerRunning(false);
               }}
               title="Reiniciar temporizador"
-              className="text-zinc-500 hover:text-white ml-0.5 cursor-pointer tabe-btn-action"
+              className="p-1 rounded-lg text-[#515154] hover:text-[#1D1D1F] hover:bg-black/[0.05] transition-colors cursor-pointer"
             >
-              <RotateCcw className="w-3 h-3" />
+              <RotateCcw className="w-3.5 h-3.5" />
             </button>
           </div>
 
           {/* Toggle Modo Exposición vs Modo Laboratorio Avanzado con Resorte FLIP layoutId */}
-          <div className="inline-flex p-1 rounded-2xl bg-black/70 border border-white/[0.08] text-xs font-mono relative">
+          <div className="apple-segmented text-xs relative">
             <button
               onClick={() => {
                 if (viewMode !== 'exposicion') onToggleViewMode();
               }}
-              className={`relative z-10 px-3 py-1 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer tabe-btn-action ${
-                viewMode === 'exposicion' ? 'text-slate-950 font-bold' : 'text-zinc-400 hover:text-white'
+              className={`relative z-10 px-3 py-1.5 rounded-[10px] transition-colors flex items-center gap-1.5 cursor-pointer font-semibold ${
+                viewMode === 'exposicion' ? 'text-white' : 'text-[#515154] hover:text-[#1D1D1F]'
               }`}
             >
               {viewMode === 'exposicion' && (
@@ -151,9 +149,10 @@ export const LabNavbar: React.FC<LabNavbarProps> = ({
                   layoutId="tabe-viewmode-pill"
                   transition={tabeSpringPill}
                   style={{
-                    background: `linear-gradient(135deg, rgba(${currentTheme.primaryRgb}, 1) 0%, rgba(${currentTheme.secondaryRgb}, 1) 100%)`
+                    background: `linear-gradient(180deg, rgba(${currentTheme.primaryRgb}, 0.94) 0%, rgba(${currentTheme.secondaryRgb}, 1) 100%)`,
+                    boxShadow: `inset 0 1px 0 rgba(255,255,255,0.28), 0 2px 6px rgba(${currentTheme.primaryRgb}, 0.35)`
                   }}
-                  className="absolute inset-0 rounded-xl shadow-lg -z-10"
+                  className="absolute inset-0 rounded-[10px] -z-10"
                 />
               )}
               <Presentation className="w-3.5 h-3.5" />
@@ -164,15 +163,15 @@ export const LabNavbar: React.FC<LabNavbarProps> = ({
               onClick={() => {
                 if (viewMode !== 'laboratorio') onToggleViewMode();
               }}
-              className={`relative z-10 px-3 py-1 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer tabe-btn-action ${
-                viewMode === 'laboratorio' ? 'text-slate-950 font-bold' : 'text-zinc-400 hover:text-white'
+              className={`relative z-10 px-3 py-1.5 rounded-[10px] transition-colors flex items-center gap-1.5 cursor-pointer font-semibold ${
+                viewMode === 'laboratorio' ? 'text-[#1D1D1F]' : 'text-[#515154] hover:text-[#1D1D1F]'
               }`}
             >
               {viewMode === 'laboratorio' && (
                 <motion.span
                   layoutId="tabe-viewmode-pill"
                   transition={tabeSpringPill}
-                  className="absolute inset-0 rounded-xl bg-white shadow-lg -z-10"
+                  className="absolute inset-0 rounded-[10px] bg-white shadow-[0_2px_6px_rgba(0,0,0,0.10),0_0.5px_1px_rgba(0,0,0,0.06)] -z-10"
                 />
               )}
               <Sliders className="w-3.5 h-3.5" />
@@ -184,16 +183,16 @@ export const LabNavbar: React.FC<LabNavbarProps> = ({
           <button
             onClick={toggleFullscreen}
             title="Pantalla Completa"
-            className="p-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-zinc-400 hover:text-white transition-colors cursor-pointer tabe-btn-action"
+            className="apple-btn apple-btn-secondary p-2 rounded-[12px] text-[#3A3A3C]"
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
         </div>
       </div>
 
-      {/* Fila Inferior: Selector Rápido de las 10 Secciones con Píldora de Resorte FLIP */}
-      <div className="border-t border-white/[0.04] bg-black/40 px-4 sm:px-6 py-1.5 overflow-x-auto no-scrollbar">
-        <div className="max-w-7xl mx-auto flex items-center gap-1.5">
+      {/* Fila Inferior: Selector Rápido de las 7 Secciones con Píldora de Resorte FLIP */}
+      <div className="border-t border-black/[0.06] bg-[#F5F5F7]/80 px-4 sm:px-6 py-2 overflow-x-auto no-scrollbar">
+        <div className="max-w-[1440px] mx-auto flex items-center gap-1.5">
           {LAB_SECTIONS.map((sec) => {
             const isSelected = activeSection === sec.id;
             const theme = SECTION_THEMES[sec.id] || SECTION_THEMES[1];
@@ -201,28 +200,31 @@ export const LabNavbar: React.FC<LabNavbarProps> = ({
               <button
                 key={sec.id}
                 onClick={() => onSelectSection(sec.id)}
-                className={`relative px-3 py-1 rounded-xl text-xs font-mono whitespace-nowrap transition-colors cursor-pointer select-none tabe-btn-action ${
-                  isSelected ? 'text-white font-bold' : 'text-zinc-400 hover:text-zinc-200'
+                className={`relative px-3.5 py-1.5 rounded-[11px] text-xs font-sans whitespace-nowrap transition-colors cursor-pointer select-none ${
+                  isSelected
+                    ? 'font-bold'
+                    : 'font-medium text-[#515154] hover:text-[#1D1D1F] hover:bg-black/[0.03]'
                 }`}
+                style={isSelected ? { color: theme.badgeText } : undefined}
               >
                 {isSelected && (
                   <motion.span
                     layoutId="tabe-navbar-active-pill"
                     transition={tabeSpringPill}
                     style={{
-                      backgroundColor: `rgba(${theme.primaryRgb}, 0.18)`,
-                      borderColor: `rgba(${theme.primaryRgb}, 0.45)`,
-                      boxShadow: `0 4px 14px -3px rgba(${theme.primaryRgb}, 0.35)`
+                      backgroundColor: '#FFFFFF',
+                      borderColor: `rgba(${theme.primaryRgb}, 0.28)`,
+                      boxShadow: `0 2px 8px -1px rgba(0, 0, 0, 0.08), 0 0 0 0.5px rgba(${theme.primaryRgb}, 0.22)`
                     }}
-                    className="absolute inset-0 rounded-xl border -z-10"
+                    className="absolute inset-0 rounded-[11px] border -z-10"
                   />
                 )}
-                <span className="relative z-10 flex items-center gap-1">
-                  <span 
+                <span className="relative z-10 flex items-center gap-1.5">
+                  <span
                     style={{
-                      backgroundColor: isSelected ? theme.accentHex : 'rgba(255,255,255,0.2)'
+                      backgroundColor: isSelected ? theme.accentHex : 'rgba(81,81,84,0.38)'
                     }}
-                    className="w-1.5 h-1.5 rounded-full inline-block transition-colors"
+                    className="w-2 h-2 rounded-full inline-block transition-colors"
                   />
                   {sec.short}
                 </span>

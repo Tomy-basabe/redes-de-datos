@@ -4,20 +4,23 @@
 
 @layer base {
   :root {
-    --section-accent-rgb: 34, 211, 238; /* Cyan por defecto */
-    --section-secondary-rgb: 59, 130, 246; /* Azul por defecto */
+    --section-accent-rgb: 0, 113, 227; /* Azul Cupertino por defecto */
+    --section-secondary-rgb: 2, 132, 199;
   }
 
   html {
-    background-color: #07090e;
-    color: #f5f5f7;
+    background-color: #F5F5F7;
+    color: #1D1D1F;
     scroll-behavior: smooth;
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   body {
-    background-color: #07090e;
-    color: #f5f5f7;
+    background-color: #F5F5F7;
+    color: #1D1D1F;
     overflow-x: hidden;
     margin: 0;
     padding: 0;
@@ -25,71 +28,84 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  h1, h2, h3, h4 {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    letter-spacing: -0.035em;
+  h1, h2, h3, h4, button, select, input {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  .font-mono, code, kbd {
+    font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Monaco, Consolas, "JetBrains Mono", monospace;
+    font-variant-numeric: tabular-nums;
   }
 }
 
-/* Apple Smooth Scrollbar */
+/* Apple Smooth Scrollbar (Tema Claro) */
 ::-webkit-scrollbar {
   width: 7px;
   height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #07090e;
+  background: #eef2f6;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(15, 23, 42, 0.18);
   border-radius: 9999px;
-  border: 1px solid rgba(0, 0, 0, 0.4);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(34, 211, 238, 0.5);
+  background: rgba(2, 132, 199, 0.55);
 }
 
 /* ========================================================
-   T.A.B.E. UI CHOREOGRAPHY ENGINE (Apple / Linear / Notion)
+   T.A.B.E. UI CHOREOGRAPHY ENGINE (Cupertino Light Unified)
    ======================================================== */
 
-/* Halo Ambiental de Iluminación Reactiva Superior */
+/* Halo Ambiental Sutil en Tema Claro */
 .tabe-ambient-glow {
   background: radial-gradient(
     ellipse 85% 45% at 50% -10%,
-    rgba(var(--section-accent-rgb), 0.18) 0%,
-    rgba(var(--section-secondary-rgb), 0.08) 45%,
+    rgba(var(--section-accent-rgb), 0.11) 0%,
+    rgba(var(--section-secondary-rgb), 0.05) 45%,
     transparent 80%
   );
   pointer-events: none;
   transition: all 0.75s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Cristales Neomórficos Apple Glass */
+/* Lienzo Unificado de Diapositiva Cupertino */
+.cupertino-slide-shell {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 28px;
+  box-shadow: 0 18px 50px -22px rgba(15, 23, 42, 0.14);
+}
+
+/* Cristales Neomórficos Apple Glass (Tema Claro Unificado) */
 .apple-glass {
-  background: rgba(13, 16, 23, 0.72);
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 10px 30px -14px rgba(15, 23, 42, 0.1);
 }
 
 .apple-glass-interactive {
-  background: rgba(13, 16, 23, 0.72);
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .apple-glass-interactive:hover {
-  background: rgba(22, 27, 38, 0.82);
+  background: #ffffff;
   border-color: rgba(var(--section-accent-rgb), 0.35);
   transform: translateY(-2px);
-  box-shadow: 
-    0 16px 36px -12px rgba(0, 0, 0, 0.7),
-    0 0 24px -6px rgba(var(--section-accent-rgb), 0.15);
+  box-shadow:
+    0 16px 36px -14px rgba(15, 23, 42, 0.14),
+    0 0 24px -6px rgba(var(--section-accent-rgb), 0.12);
 }
 
 /* PILAR 1 & 2: COREOGRAFÍA GLOBAL EN 3 ETAPAS */
@@ -248,3 +264,203 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+/* ========================================================
+   APPLE CUPERTINO PRO DESIGN SYSTEM (Unificado en las 8 Diapositivas)
+   ======================================================== */
+.apple-slide-canvas {
+  background-color: #F5F5F7;
+  border: 1px solid rgba(0, 0, 0, 0.065);
+  border-radius: 30px;
+  color: #1D1D1F;
+  box-shadow:
+    0 24px 60px -24px rgba(15, 23, 42, 0.14),
+    0 2px 6px rgba(15, 23, 42, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.apple-bento {
+  background-color: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.065);
+  border-radius: 22px;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.03),
+    0 10px 26px -14px rgba(15, 23, 42, 0.08);
+}
+
+.apple-well {
+  background-color: #F5F5F7;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+}
+
+/* Botones Premium Apple (Sequoia / iOS Tactile System) */
+.apple-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Plus Jakarta Sans", system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  user-select: none;
+  cursor: pointer;
+  transition:
+    transform 0.16s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.16s ease,
+    border-color 0.16s ease,
+    filter 0.16s ease,
+    opacity 0.16s ease;
+}
+
+.apple-btn:active:not(:disabled) {
+  transform: scale(0.968);
+}
+
+.apple-btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.apple-btn-primary {
+  background: linear-gradient(180deg, #0A84FF 0%, #0071E3 100%);
+  color: #FFFFFF;
+  border: 1px solid rgba(0, 88, 184, 0.85);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 2px 8px -1px rgba(0, 113, 227, 0.36),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.apple-btn-primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.36),
+    0 5px 14px -2px rgba(0, 113, 227, 0.42),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.apple-btn-ink {
+  background: linear-gradient(180deg, #2C2C2E 0%, #1D1D1F 100%);
+  color: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.85);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 2px 8px -1px rgba(29, 29, 31, 0.28),
+    0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.apple-btn-ink:hover:not(:disabled) {
+  background: linear-gradient(180deg, #3A3A3C 0%, #1D1D1F 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 5px 14px -2px rgba(29, 29, 31, 0.34);
+}
+
+.apple-btn-emerald {
+  background: linear-gradient(180deg, #28CD41 0%, #189E32 100%);
+  color: #FFFFFF;
+  border: 1px solid rgba(20, 128, 42, 0.85);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 2px 8px -1px rgba(24, 158, 50, 0.32),
+    0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.apple-btn-emerald:hover:not(:disabled) {
+  filter: brightness(1.05);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 5px 14px -2px rgba(24, 158, 50, 0.38);
+}
+
+.apple-btn-rose {
+  background: linear-gradient(180deg, #FF453A 0%, #D70015 100%);
+  color: #FFFFFF;
+  border: 1px solid rgba(190, 0, 18, 0.85);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 2px 8px -1px rgba(215, 0, 21, 0.3),
+    0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.apple-btn-rose:hover:not(:disabled) {
+  filter: brightness(1.06);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    0 5px 14px -2px rgba(215, 0, 21, 0.38);
+}
+
+.apple-btn-amber {
+  background: linear-gradient(180deg, #FF9F0A 0%, #D97706 100%);
+  color: #FFFFFF;
+  border: 1px solid rgba(180, 95, 4, 0.85);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 2px 8px -1px rgba(217, 119, 6, 0.3),
+    0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.apple-btn-amber:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.apple-btn-secondary {
+  background: linear-gradient(180deg, #FFFFFF 0%, #F7F7FA 100%);
+  color: #1D1D1F;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow:
+    inset 0 1px 0 #FFFFFF,
+    0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.apple-btn-secondary:hover:not(:disabled) {
+  background: #FFFFFF;
+  border-color: rgba(0, 0, 0, 0.16);
+  box-shadow:
+    inset 0 1px 0 #FFFFFF,
+    0 3px 10px -2px rgba(0, 0, 0, 0.08);
+}
+
+/* Segmented Control estilo macOS Sequoia */
+.apple-segmented {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px;
+  border-radius: 14px;
+  background: rgba(118, 118, 128, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.apple-segment-active {
+  background: #FFFFFF;
+  color: #1D1D1F;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.1),
+    0 0.5px 1px rgba(0, 0, 0, 0.08);
+}
+
+.apple-pro-canvas,
+.apple-pro-canvas h1,
+.apple-pro-canvas h2,
+.apple-pro-canvas h3,
+.apple-pro-canvas h4,
+.apple-pro-canvas button {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.apple-pro-canvas .font-mono,
+.apple-pro-canvas code {
+  font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Monaco, Consolas, "JetBrains Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.apple-pro-canvas .apple-tabular {
+  font-variant-numeric: tabular-nums;
+}
+

@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control de Congestión y Control de Flujo TCP · UTN FRM</title>
+  <meta name="description" content="Simulador interactivo de la ventana de congestión y control de flujo TCP (cwnd, rwnd, ssthresh, Slow Start, Congestion Avoidance, Fast Retransmit) según Kurose & Ross con diagrama espacio-tiempo para la Escuela 4-025 Los Corralitos.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- DASHBOARD PRINCIPAL DE 3 COLUMNAS (ESTILO IMAGE 2) -->
+  <div class="dashboard-layout">
+
+    <!-- ============================================================
+         COLUMNA IZQUIERDA: SIDEBAR DE CONTROL & ESCENARIOS
+         ============================================================ -->
+    <aside class="left-sidebar">
+      <!-- Tarjeta Institucional -->
+      <div class="sidebar-card">
+        <div class="brand-header">
+          <div class="brand-titles">
+            <h1 style="font-size: 0.95rem; line-height: 1.25;">Control de Congestión y Control de Flujo</h1>
+            <span>Redes de Datos · UTN FRM</span>
+          </div>
+        </div>
+        <div style="font-size: 0.78rem; color: #515154; line-height: 1.4; border-top: 1px solid rgba(0,0,0,0.08); padding-top: 0.55rem;">
+          Escuela 4-025 Los Corralitos · VLAN 20 ⇄ VLAN 10
+        </div>
+      </div>
+
+      <!-- Controles de Reproducción -->
+      <div class="sidebar-card playback-block">
+        <button class="btn btn-primary" id="btn-play-pause">
+          <span>▶</span> Iniciar Simulación
+        </button>
+
+        <div class="btn-group-row">
+          <button class="btn btn-secondary" id="btn-step-next" title="Avanzar 1 RTT">
+            <span>⏭</span> Paso +
+          </button>
+          <button class="btn btn-secondary" id="btn-step-prev" title="Revertir paso (Snapshot)">
+            <span>⏮</span> Paso -
+          </button>
+        </div>
+
+        <button class="btn btn-danger-outline" id="btn-reset" title="Reiniciar Escenario">
+          <span>↺</span> Reiniciar
+        </button>
+
+        <div class="control-field" style="margin-top: 0.3rem;">
+          <label for="playback-speed">Velocidad Animación:</label>
+          <select id="playback-speed" class="select-input">
+            <option value="2000">0.5x (2.0s - Exposición)</option>
+            <option value="1200" selected>1.0x (1.2s - Recomendada)</option>
+            <option value="600">2.0x (0.6s - Rápida)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Selector de Escenario Guiado -->
+      <div class="sidebar-card">
+        <div class="control-field">
+          <label for="scenario-selector">Escenario:</label>
+          <select id="scenario-selector" class="select-input">
+            <option value="SCENARIO_1_KUROSE_FIG_353" selected>
+              1. Crecimiento y 3 ACKs Duplicados
+            </option>
+            <option value="SCENARIO_2_TIMEOUT">
+              2. Pérdida por Timeout (RTO)
+            </option>
+            <option value="SCENARIO_3_SAWTOOTH_AIMD">
+              3. Diente de Sierra (AIMD)
+            </option>
+            <option value="SCENARIO_4_QUEUE_CONGESTION">
+              4. Descarte por Búfer L3 Lleno
+            </option>
+          </select>
+        </div>
+
+        <label class="checkbox-control">
+          <input type="checkbox" id="check-tahoe-compare">
+          <span>Comparar con TCP Tahoe</span>
+        </label>
+      </div>
+
+      <!-- Configuración Rápida / Búfer & Pérdidas -->
+      <div class="sidebar-card">
+        <div class="control-field">
+          <label for="param-mss">MSS (Segmento):</label>
+          <select id="param-mss" class="select-input">
+            <option value="1460" selected>1460 B (Ethernet MTU 1500)</option>
+            <option value="1000">1000 B (Base 10 Didáctico)</option>
+            <option value="536">536 B (RFC Mínimo IPv4)</option>
+            <option value="1">1 Byte (Ultra Didáctico: 1 Segm = 1 B)</option>
+          </select>
+        </div>
+
+        <div class="control-field">
+          <label for="param-algorithm">Algoritmo TCP:</label>
+          <select id="param-algorithm" class="select-input">
+            <option value="RENO" selected>TCP Reno (Fast Recovery)</option>
+            <option value="TAHOE">TCP Tahoe (Caída a 1 MSS)</option>
+          </select>
+        </div>
+
+        <div class="control-field">
+          <label for="param-buffer">Búfer Cola Router C9200:</label>
+          <select id="param-buffer" class="select-input">
+            <option value="8" selected>8 Paquetes (Cuello de Botella)</option>
+            <option value="16">16 Paquetes</option>
+            <option value="24">24 Paquetes</option>
+          </select>
+        </div>
+
+        <div class="control-field">
+          <label for="inject-loss-type">Forzar Pérdida Próximo RTT:</label>
+          <div style="display: flex; gap: 0.35rem;">
+            <select id="inject-loss-type" class="select-input" style="flex: 1;">
+              <option value="TRIPLE_DUP_ACK">3x Dup ACK</option>
+              <option value="TIMEOUT">Timeout RTO</option>
+              <option value="QUEUE_DROP">Descarte Cola</option>
+            </select>
+            <button class="btn btn-secondary" id="btn-inject-loss" style="padding: 0.4rem 0.7rem;" title="Inyectar en próximo ciclo">
+              ⚡
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accesos a Reportes y Teoría -->
+      <div class="sidebar-card" style="gap: 0.5rem;">
+        <button class="btn btn-secondary" id="btn-open-theory-modal" style="width: 100%;">
+          <span>📖</span> Fundamentos Kurose
+        </button>
+      </div>
+    </aside>
+
+    <!-- ============================================================
+         COLUMNA CENTRAL: STAGE PRINCIPAL (LADDER & DYNAMIC CHART)
+         ============================================================ -->
+    <main class="center-column">
+      <!-- SECTOR A: DIAGRAMA ESPACIO-TIEMPO (LADDER DIAGRAM DE KUROSE & ROSS) -->
+      <section class="ladder-section-card">
+        <div class="section-title-row">
+          <h2>
+            <span>🌐</span>
+            <span>Sector A: Diagrama Espacio-Tiempo</span>
+          </h2>
+          <span class="badge-pill">Líneas Diagonales de Transmisión</span>
+        </div>
+
+        <!-- Contenedor del visualizador Ladder Diagram -->
+        <div id="ladder-visualizer-container">
+          <!-- Renderizado dinámico por js/networkVisualizer.js -->
+        </div>
+      </section>
+
+      <!-- SECTOR B: GRÁFICO DINÁMICO DE CWND Y SSTHRESH -->
+      <section class="chart-section-card">
+        <div class="section-title-row">
+          <h2>
+            <span>📈</span>
+            <span>Sector B: Gráfico Dinámico de Ventana de Congestión</span>
+          </h2>
+          <span class="badge-pill">Curva Calculada en Tiempo Real</span>
+        </div>
+
+        <div class="chart-wrapper">
+          <canvas id="congestion-chart"></canvas>
+        </div>
+
+        <div class="chart-legend-bar">
+          <div class="legend-tags">
+            <div class="legend-item">
+              <span class="l-square sq-slow"></span>
+              <span>Arranque Lento (Exponencial)</span>
+            </div>
+            <div class="legend-item">
+              <span class="l-square sq-avoid"></span>
+              <span>Evitación de Congestión (Lineal / AIMD)</span>
+            </div>
+            <div class="legend-item">
+              <span class="l-square sq-recov"></span>
+              <span>Recuperación Rápida</span>
+            </div>
+          </div>
+          <span>Pasá el cursor por los puntos para inspeccionar valores exactos.</span>
+        </div>
+      </section>
+
+      <!-- SECTOR C: CONTROL DE FLUJO & MODELO DEL BALDE (BÚFER RECEPTOR) -->
+      <section class="chart-section-card" id="sector-c-flow-control">
+        <div class="section-title-row" style="flex-wrap: wrap; gap: 0.6rem; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
+          <div>
+            <h2 style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.2rem;">
+              <span>🪣</span>
+              <span>Sector C: Control de Flujo TCP — Modelo del Balde / Búfer de Recepción</span>
+            </h2>
+            <div style="font-size: 0.8rem; color: #515154; font-family: var(--font-m);">
+              Canal Inter-VLAN: <strong style="color: #0071e3;">PC Estudiantes (172.16.20.10:51842)</strong> ➔ <strong style="color: #059669;">Nginx Proxy Inverso (172.16.10.12:443)</strong> ➔ <strong style="color: #7c3aed;">Backend: Samba VM (172.16.10.13:445)</strong>
+            </div>
+          </div>
+          <div style="display: flex; gap: 0.6rem; align-items: center; margin-left: auto;">
+            <div style="display: flex; flex-direction: column; align-items: flex-end;">
+              <span style="font-size: 0.74rem; color: #515154; font-weight: 700; text-transform: uppercase;">Ventana Recepción</span>
+              <span class="fc-kpi-badge fc-kpi-badge-safe" id="fc-rwnd-badge">14.0 MSS libres</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-end;">
+              <span style="font-size: 0.74rem; color: #515154; font-weight: 700; text-transform: uppercase;">Límite Efectivo</span>
+              <span class="fc-kpi-badge" style="background: #ede9fe; color: #6d28d9; border-color: #ddd6fe;" id="fc-effective-badge">8.0 MSS</span>
+            </div>
+            <span class="fc-status-pill fc-pill-safe" id="fc-status-badge">Transmisión Normal</span>
+          </div>
+        </div>
+
+        <!-- Barra de Controles Interactivos Paso a Paso -->
+        <div class="fc-toolbar">
+          <div class="fc-btn-group">
+            <button class="fc-btn fc-btn-primary" id="fc-btn-send-2" title="PC Estudiantes envía 2 MSS hacia Nginx Proxy Inverso">
+              <span>📥</span> Enviar a SAMBA (+2 MSS)
+            </button>
+            <button class="fc-btn fc-btn-success" id="fc-btn-drain-2" title="Nginx lee del búfer y reenvía 2 MSS al backend Samba">
+              <span>🔄</span> SAMBA Reenvía a Samba (-2 MSS)
+            </button>
+          </div>
+
+          <div class="fc-btn-group">
+            <button class="fc-btn fc-btn-danger" id="fc-btn-saturate" title="Forzar ráfaga hasta llenar el búfer de Nginx (rwnd = 0)">
+              <span>⚡</span> Saturar Búfer (rwnd = 0)
+            </button>
+            <button class="fc-btn fc-btn-secondary" id="fc-btn-flush" title="Nginx procesa y vacía todo el búfer hacia Samba">
+              <span>🧹</span> Vaciar Búfer
+            </button>
+            <button class="fc-btn fc-btn-warning" id="fc-btn-probe" title="PC envía sonda de 1 byte para consultar si Nginx liberó espacio">
+              <span>⚠️</span> Sonda 1 Byte
+            </button>
+          </div>
+
+          <div class="fc-btn-group" style="margin-left: auto;">
+            <button class="fc-btn fc-btn-accent" id="fc-btn-autoplay" title="Iniciar simulación automática continua">
+              <span>▶</span> Simulación Dinámica
+            </button>
+            <select id="fc-select-disk-speed" class="select-input select-sm" style="font-size: 0.78rem; padding: 0.38rem 0.65rem; border-radius: 10px;" title="Velocidad con la que el backend Samba recibe datos de Nginx">
+              <option value="SLOW" selected>🐢 Backend Samba Lento (Nginx no puede drenar y se llena)</option>
+              <option value="NORMAL">⚖️ Backend Samba Normal (Equilibrio Nginx ⇄ Samba)</option>
+              <option value="FAST">🚀 Backend Samba Rápido (Nginx drena inmediatamente)</option>
+              <option value="BLOCKED">🛑 Backend Samba Bloqueado (0 KB/s - Deadlock/Sondas)</option>
+            </select>
+            <button class="fc-btn fc-btn-ghost" id="fc-btn-reset" title="Reiniciar búfer al estado inicial">
+              <span>↺</span> Reiniciar
+            </button>
+          </div>
+        </div>
+
+        <!-- DIAGRAMA VISUAL PRINCIPAL: PC ESTUDIANTES ⇄ CANAL ⇄ BALDE NGINX (BACKEND SAMBA) -->
+        <div class="fc-visual-diagram-container">
+          
+          <!-- COLUMNA 1: PC ESTUDIANTES (HOST EMISOR) -->
+          <div class="fc-host-card">
+            <div class="fc-host-header">
+              <div class="fc-host-icon">💻</div>
+              <div class="fc-host-titles">
+                <h3>PC Estudiantes</h3>
+                <span>172.16.20.10:51842 · VLAN 20</span>
+              </div>
+            </div>
+
+            <div class="fc-host-metrics">
+              <div class="fc-hm-row">
+                <span class="label">Ventana Congestión (cwnd):</span>
+                <span class="val c-primary" id="fc-pc-cwnd">8 MSS</span>
+              </div>
+              <div class="fc-hm-row">
+                <span class="label">rwnd anunciado por Nginx:</span>
+                <span class="val c-emerald" id="fc-pc-rwnd">14 MSS</span>
+              </div>
+              <div class="fc-hm-row" style="border-top: 1px dashed #e2e8f0; padding-top: 0.3rem; margin-top: 0.2rem;">
+                <span class="label" style="font-weight: 700;">Límite Efectivo min(cwnd, rwnd):</span>
+                <span class="val c-purple" id="fc-pc-effective">8 MSS (11.7 KB)</span>
+              </div>
+            </div>
+
+            <div class="fc-host-state fc-state-safe" id="fc-pc-state">
+              ✅ Transmitiendo a Nginx a velocidad de red
+            </div>
+
+            <div style="font-size: 0.76rem; color: #515154; line-height: 1.4; margin-top: auto; border-top: 1px solid rgba(0,0,0,0.08); padding-top: 0.5rem;">
+              <strong>Detalle Teórico de Transporte:</strong> La PC establece su conexión TCP directamente con el <strong>Proxy Inverso Nginx</strong> (puerto 443). El límite de envío en vuelo está restringido por <code>min(cwnd, rwnd)</code>. Si el backend Samba se satura, Nginx reduce <code>rwnd</code> hacia la PC.
+            </div>
+          </div>
+
+          <!-- COLUMNA 2: CANAL DE RED INTER-VLAN (CISCO C9200) -->
+          <div class="fc-channel-wrapper">
+            <!-- Vía de Envío de Datos (PC ➔ Nginx) -->
+            <div class="fc-channel-lane">
+              <span class="fc-lane-label">Datos TCP (PC ➔ Nginx Proxy Inverso) ➔</span>
+              <div class="fc-packet-capsule fc-packet-data" id="fc-packet-data">
+                📦 Datos: +2 MSS (2,920 B)
+              </div>
+            </div>
+
+            <!-- Vía de Reconocimientos ACK con rwnd (Nginx ➔ PC) -->
+            <div class="fc-channel-lane">
+              <span class="fc-lane-label">◀ ACKs de Nginx con VentanaRecepcion (rwnd)</span>
+              <div class="fc-packet-capsule fc-packet-ack" id="fc-packet-ack">
+                ACK: Seq 3920 | rwnd = 14 MSS
+              </div>
+            </div>
+
+            <!-- Indicador Central del Switch L3 -->
+            <div style="text-align: center; font-size: 0.76rem; color: #3a3a3c; font-family: var(--font-m); background: #ffffff; border: 1px solid rgba(0,0,0,0.08); border-radius: 10px; padding: 0.3rem 0.65rem; align-self: center;">
+              Switch Core L3: Cisco Catalyst C9200 (Enlace Inter-VLAN 20 ⇄ 10)
+            </div>
+          </div>
+
+          <!-- COLUMNA 3: NGINX PROXY INVERSO Y EL BALDE / BÚFER DE RECEPCIÓN -->
+          <div class="fc-host-card fc-bucket-column">
+            <div class="fc-host-header" style="width: 100%;">
+              <div class="fc-host-icon">🛡️</div>
+              <div class="fc-host-titles">
+                <h3>Nginx Proxy (SAMBA)</h3>
+                <span>172.16.10.12:443 · VLAN 10</span>
+              </div>
+            </div>
+
+            <div style="font-size: 0.76rem; color: #515154; width: 100%;" id="fc-samba-disk-state">
+              🐢 Backend Samba Lento (I/O Lento ~ 1 MSS/s)
+            </div>
+
+            <!-- Tubería de Entrada Superior (Red) -->
+            <div class="fc-pipe-top">
+              <div class="fc-pipe-stem"></div>
+              <div class="fc-pipe-nozzle"></div>
+              <div class="fc-water-flow" id="fc-water-flow-in"></div>
+            </div>
+
+            <!-- EL BALDE DE VIDRIO / RECIPIENTE GRADUADO DE NGINX -->
+            <div class="fc-bucket-vessel">
+              <!-- Escala Graduada en MSS -->
+              <div class="fc-bucket-scale">
+                <div class="fc-scale-mark">16M</div>
+                <div class="fc-scale-mark">12M</div>
+                <div class="fc-scale-mark">8M</div>
+                <div class="fc-scale-mark">4M</div>
+                <div class="fc-scale-mark">0M</div>
+              </div>
+
+              <!-- Espacio Libre = VENTANA DE RECEPCIÓN (rwnd) -->
+              <div class="fc-bucket-free-space" id="fc-bucket-free-space" style="height: 87.5%;">
+                <div class="fc-bracket-title">
+                  <span>✨</span> VentanaRecepcion (rwnd)
+                </div>
+                <div class="fc-bracket-val" id="fc-bucket-rwnd-text">
+                  14 MSS (20,440 B)
+                </div>
+                <div class="fc-bracket-sub">
+                  Espacio libre en socket Nginx anunciado a PC
+                </div>
+              </div>
+
+              <!-- Nivel de Líquido = DATOS RETENIDOS EN BÚFER DE NGINX -->
+              <div class="fc-bucket-liquid fc-liquid-safe" id="fc-bucket-liquid" style="height: 12.5%;">
+                <div class="fc-liquid-title">📦 DATOS EN BÚFER NGINX</div>
+                <div class="fc-liquid-val" id="fc-bucket-occupied-text">2 MSS (2,920 B)</div>
+                <div class="fc-liquid-sub">LastByteRcvd - LastByteRead</div>
+              </div>
+            </div>
+
+            <!-- Tubería de Salida Inferior y Válvula hacia Backend Samba -->
+            <div class="fc-pipe-bottom">
+              <div class="fc-water-flow" id="fc-water-flow-out"></div>
+              <div class="fc-drain-valve">
+                <div class="fc-valve-wheel" title="Válvula de reenvío proxy hacia Samba"></div>
+                <div class="fc-pipe-stem" style="height: 10px; border-radius: 0 0 4px 4px; border-top: none; border-bottom: 1px solid #64748b;"></div>
+              </div>
+              <div class="fc-disk-target" title="Servidor de almacenamiento interno donde Nginx reenvía las subidas">
+                <span>🗄️</span>
+                <span>Backend: Samba VM (172.16.10.13:445)</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- PANEL DE FÓRMULAS MATEMÁTICAS EN TIEMPO REAL (KUROSE & ROSS CAP. 3.5.5) -->
+        <div class="fc-math-panel">
+          <div class="fc-math-card">
+            <span class="fc-mc-label">1. Capacidad Total Búfer</span>
+            <span class="fc-mc-formula">RcvBuffer (Constante)</span>
+            <span class="fc-mc-val c-primary" id="fc-math-rcvbuffer">16 MSS (23,360 B)</span>
+          </div>
+
+          <div class="fc-math-card">
+            <span class="fc-mc-label">2. Ocupación en Espera</span>
+            <span class="fc-mc-formula">LastByteRcvd - LastByteRead</span>
+            <span class="fc-mc-val" style="color: #ea580c;" id="fc-math-occupancy">2 MSS (2,920 B)</span>
+          </div>
+
+          <div class="fc-math-card">
+            <span class="fc-mc-label">3. Ventana de Recepción</span>
+            <span class="fc-mc-formula">rwnd = RcvBuffer - Ocupación</span>
+            <span class="fc-mc-val c-emerald" id="fc-math-rwnd">14 MSS (20,440 B)</span>
+          </div>
+
+          <div class="fc-math-card">
+            <span class="fc-mc-label">4. Límite Real de Envío</span>
+            <span class="fc-mc-formula">Límite = min(cwnd, rwnd)</span>
+            <span class="fc-mc-val c-purple" id="fc-math-effective">8 MSS (11,680 B)</span>
+          </div>
+        </div>
+
+        <!-- BITÁCORA DE PASOS INTERACTIVA: SATURACIÓN Y DESCONGESTIÓN -->
+        <div class="fc-log-wrapper">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <strong style="font-size: 0.84rem; color: #1d1d1f;">Bitácora de Pasos de Control de Flujo (Explicación Dinámica):</strong>
+            <span style="font-size: 0.76rem; color: #515154; font-family: var(--font-m);">Últimas acciones registradas</span>
+          </div>
+          <div class="fc-log-list" id="fc-log-list">
+            <!-- Entradas agregadas dinámicamente -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ============================================================
+         COLUMNA DERECHA: BÚFERES TCP FUNCIONALES
+         ============================================================ -->
+    <aside class="right-column">
+      <div class="buffers-integrated-card">
+        <div class="buffers-title-bar">
+          <div>
+            <h4>Búferes TCP Funcionales</h4>
+            <div style="font-size: 0.78rem; color: #515154; margin-top: 0.15rem;">Emisor, Cola L3 y Receptor</div>
+          </div>
+          <span class="buffers-badge">Estado Real de Memoria</span>
+        </div>
+
+        <div class="buffers-grid">
+          <!-- 1. Send Buffer del Cliente -->
+          <div class="buffer-box">
+            <div class="buffer-box-header">
+              <span class="b-title">1. Búfer Emisor (Host A - Cliente)</span>
+              <span class="b-status font-mono" id="b-client-status">0 B enviados sin reconocer</span>
+            </div>
+            <div class="buffer-bar-track" id="b-client-track">
+              <div class="b-seg b-seg-acked" id="b-client-acked" style="width: 0%;" title="Enviado y reconocido (liberado del búfer)"></div>
+              <div class="b-seg b-seg-inflight" id="b-client-inflight" style="width: 10%;" title="Enviado sin reconocer (dentro de cwnd, esperando ACK)"></div>
+              <div class="b-seg b-seg-ready" id="b-client-ready" style="width: 90%;" title="Listos para enviar"></div>
+            </div>
+            <div class="buffer-legend-row">
+              <span class="l-item"><span class="l-dot dot-green"></span> Enviado y reconocido</span>
+              <span class="l-item"><span class="l-dot dot-blue"></span> Enviado sin reconocer (cwnd)</span>
+              <span class="l-item"><span class="l-dot dot-gray"></span> Por Enviar</span>
+            </div>
+          </div>
+
+          <!-- 2. Búfer de Cola del Router (Cisco C9200) -->
+          <div class="buffer-box">
+            <div class="buffer-box-header">
+              <span class="b-title">2. Cola del Router L3 (Cisco Catalyst C9200)</span>
+              <span class="b-status font-mono" id="b-router-status">0 / 8 Paquetes</span>
+            </div>
+            <div class="router-slots-row" id="router-queue-slots">
+              <!-- Generado dinámicamente por networkVisualizer.js -->
+            </div>
+            <div class="buffer-legend-row">
+              <span class="l-item" id="b-router-drop-note">Búfer FIFO. Si se supera la capacidad máxima, los paquetes excedentes se descartan por saturación.</span>
+            </div>
+          </div>
+
+          <!-- 3. Receive Buffer del Servidor (Nginx) -->
+          <div class="buffer-box">
+            <div class="buffer-box-header">
+              <span class="b-title">3. Búfer Receptor (Host B - Nginx)</span>
+              <span class="b-status font-mono" id="b-server-status">0 desordenados</span>
+            </div>
+            <div class="buffer-bar-track">
+              <div class="b-seg b-seg-delivered" id="b-server-delivered" style="width: 0%;" title="Bytes en orden entregados a Nginx"></div>
+              <div class="b-seg b-seg-ooo" id="b-server-ooo" style="width: 0%;" title="Segmentos fuera de orden retenidos"></div>
+            </div>
+            <div class="buffer-legend-row">
+              <span class="l-item"><span class="l-dot dot-green"></span> Entregado a Nginx</span>
+              <span class="l-item"><span class="l-dot dot-amber"></span> Retenido fuera de orden</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- ============================================================
+       MODAL DE FUNDAMENTOS TEÓRICOS (KUROSE & ROSS)
+       ============================================================ -->
+  <div class="modal-backdrop" id="theory-modal-backdrop">
+    <div class="modal-dialog">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.8rem; margin-bottom: 1rem;">
+        <div>
+          <h3 style="font-family: var(--font-h); font-size: 1.35rem; color: var(--text-main);">Fundamentos de Control de Congestión TCP</h3>
+          <p style="font-size: 0.8rem; color: var(--text-muted);">Computer Networking: A Top-Down Approach (Kurose &amp; Ross - Cap. 3.7)</p>
+        </div>
+        <button class="btn btn-secondary" id="btn-close-theory-modal">✕ Cerrar</button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.84rem; line-height: 1.5; color: var(--text-main);">
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-md); padding: 0.9rem;">
+          <h4 style="color: var(--primary); font-family: var(--font-h); font-size: 0.95rem; margin-bottom: 0.3rem;">1. Números de Secuencia Independientes (Full Duplex)</h4>
+          <p>
+            TCP trata los datos como un flujo de bytes ordenado y bidireccional. Cada extremo genera su propio <strong>Initial Sequence Number (ISN)</strong> de forma independiente durante el Three-Way Handshake. En este laboratorio, el Cliente (Host A) inicia en <code>ISN=1000</code> y el Servidor Nginx (Host B) en <code>ISN=50000</code>, demostrando que los números de secuencia de ida y vuelta no son iguales.
+          </p>
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-md); padding: 0.9rem;">
+          <h4 style="color: var(--primary); font-family: var(--font-h); font-size: 0.95rem; margin-bottom: 0.3rem;">2. Búferes de Host vs. Búfer de Red</h4>
+          <p>
+            <strong>Send Buffer (Host A):</strong> Almacena datos de la aplicación. Divide los bytes en: enviados y reconocidos (liberados), enviados sin reconocer (en tránsito limitados por <code>cwnd</code>) y listos para enviar.<br>
+            <strong>Router Queue Buffer (Cisco C9200):</strong> Búfer intermedio en el cuello de botella inter-VLAN. Si la ráfaga supera los slots disponibles, se produce descarte por saturación de búfer.<br>
+            <strong>Receive Buffer (Host B):</strong> Almacena bytes en orden para la aplicación Nginx. Si un segmento intermedio se pierde, los segmentos posteriores recibidos se retienen como <em>fuera de orden</em> y se generan ACKs duplicados por el byte que falta.
+          </p>
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-md); padding: 0.9rem;">
+          <h4 style="color: var(--primary); font-family: var(--font-h); font-size: 0.95rem; margin-bottom: 0.3rem;">3. Triple ACK Duplicado vs. Timeout (Figura 3.53)</h4>
+          <p>
+            <strong>3 ACKs Duplicados:</strong> Señal de pérdida moderada. La red sigue entregando segmentos posteriores. TCP Reno retransmite de inmediato (<em>Fast Retransmit</em>), fija <code>ssthresh = cwnd / 2</code> y reanuda con <code>cwnd = ssthresh</code> en evitación de congestión.<br>
+            <strong>Timeout:</strong> Señal de pérdida severa. No llega ningún ACK. TCP castiga reduciendo <code>cwnd = 1 MSS</code> e inicia de cero en Arranque Lento.
+          </p>
+        </div>
+
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-md); padding: 0.9rem;">
+          <h4 style="color: #15803d; font-family: var(--font-h); font-size: 0.95rem; margin-bottom: 0.3rem;">4. Máquina de Estados Finitos FSM (Kurose &amp; Ross - Figura 3.52): Reno vs. Tahoe</h4>
+          <p style="margin-bottom: 0.6rem;">
+            La <strong>Figura 3.52</strong> del libro modela formalmente la dinámica completa de estados del control de congestión de TCP:
+          </p>
+          <div style="overflow-x: auto; margin-bottom: 0.6rem;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.78rem; text-align: left; background: #ffffff;">
+              <thead>
+                <tr style="background: #e2e8f0; color: #1e293b;">
+                  <th style="padding: 6px 8px; border: 1px solid #cbd5e1;">Característica / Evento</th>
+                  <th style="padding: 6px 8px; border: 1px solid #cbd5e1;">TCP Tahoe (Versión Anterior)</th>
+                  <th style="padding: 6px 8px; border: 1px solid #cbd5e1;">TCP Reno (Versión Estándar)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: 600;">Estados de la FSM</td>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1;"><strong>Solo 2 estados:</strong><br>1. Arranque Lento (Slow Start)<br>2. Evitación de Congestión</td>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1;"><strong>3 estados completos:</strong><br>1. Arranque Lento (Slow Start)<br>2. Evitación de Congestión<br>3. <em>Recuperación Rápida (Fast Recovery)</em></td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: 600;">3 ACKs Duplicados (Pérdida Leve)</td>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1; color: #b91c1c;">
+                    <strong>NO POSEE Recuperación Rápida:</strong><br>
+                    Establece incondicionalmente <code>umbral = VC/2</code>, reduce <code>VC = 1 MSS</code> y entra en <strong>Arranque Lento</strong>.
+                  </td>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1; color: #15803d;">
+                    <strong>Incorpora Recuperación Rápida:</strong><br>
+                    Retransmite el segmento faltante, fija <code>umbral = VC/2</code>, entra en <strong>Recuperación Rápida</strong> con <code>VC = umbral + 3 MSS</code>. Al llegar el nuevo ACK acumulativo, sale con <code>VC = umbral</code> y pasa directamente a <strong>Evitación de Congestión</strong>.
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: 600;">Fin de Temporización (Timeout)</td>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">Fija <code>umbral = VC/2</code>, <code>VC = 1 MSS</code> y entra en Arranque Lento.</td>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">Fija <code>umbral = VC/2</code>, <code>VC = 1 MSS</code> y entra en Arranque Lento (desde cualquier estado).</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <blockquote style="margin: 0; padding: 0.5rem 0.8rem; background: #ffffff; border-left: 3px solid #10b981; font-style: italic; font-size: 0.78rem; color: #334155; border-radius: 4px;">
+            "TCP Tahoe establece incondicionalmente el tamaño de la ventana de congestión en 1 MSS y entra en el estado de arranque lento después de un suceso de pérdida indicado por un fin de temporización o por la recepción de tres ACK duplicados. La versión más reciente de TCP, TCP Reno, incorpora la recuperación rápida."<br>
+            <span style="font-style: normal; font-weight: 600; color: #515154;">— James F. Kurose &amp; Keith W. Ross (Computer Networking: A Top-Down Approach, Sección 3.7.2)</span>
+          </blockquote>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPTS MODULARES -->
+  <script src="js/tcpEngine.js"></script>
+  <script src="js/chartEngine.js"></script>
+  <script src="js/flowControlChartEngine.js"></script>
+  <script src="js/flowControlVisualizer.js"></script>
+  <script src="js/networkVisualizer.js"></script>
+  <script src="js/uiController.js"></script>
+</body>
+</html>

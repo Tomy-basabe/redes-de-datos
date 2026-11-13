@@ -42,7 +42,7 @@ export const CanvasNetworkHero: React.FC = () => {
       alpha: number;
     }> = [];
 
-    const colors = ['#22d3ee', '#38bdf8', '#34d399', '#818cf8'];
+    const colors = ['rgba(2, 132, 199, 0.45)', 'rgba(59, 130, 246, 0.42)', 'rgba(16, 185, 129, 0.4)', 'rgba(99, 102, 241, 0.42)'];
 
     for (let i = 0; i < nodeCount; i++) {
       nodes.push({
@@ -67,9 +67,9 @@ export const CanvasNetworkHero: React.FC = () => {
           const dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < 180) {
-            const lineAlpha = (1 - dist / 180) * 0.18;
+            const lineAlpha = (1 - dist / 180) * 0.12;
             ctx.beginPath();
-            ctx.strokeStyle = `rgba(34, 211, 238, ${lineAlpha})`;
+            ctx.strokeStyle = `rgba(2, 132, 199, ${lineAlpha})`;
             ctx.lineWidth = 0.8;
             ctx.moveTo(nodes[i].x, nodes[i].y);
             ctx.lineTo(nodes[j].x, nodes[j].y);
@@ -110,8 +110,8 @@ export const CanvasNetworkHero: React.FC = () => {
 
         // Core dot
         ctx.beginPath();
-        ctx.fillStyle = '#ffffff';
-        ctx.arc(n.x, n.y, n.radius * 0.8, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(2, 132, 199, 0.55)';
+        ctx.arc(n.x, n.y, n.radius * 0.85, 0, Math.PI * 2);
         ctx.fill();
       }
 
@@ -130,7 +130,7 @@ export const CanvasNetworkHero: React.FC = () => {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-0 opacity-40"
+      className="fixed inset-0 pointer-events-none z-0 opacity-35"
     />
   );
 };

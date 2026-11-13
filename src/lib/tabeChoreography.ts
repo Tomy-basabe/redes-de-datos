@@ -14,94 +14,67 @@ export interface SectionTheme {
 
 export const SECTION_THEMES: Record<number, SectionTheme> = {
   1: {
-    // 1. Intro L4: Cyan & Azul Cobalto
-    primaryRgb: '34, 211, 238',
-    secondaryRgb: '59, 130, 246',
-    accentHex: '#22d3ee',
-    badgeBg: 'rgba(34, 211, 238, 0.15)',
-    badgeBorder: 'rgba(34, 211, 238, 0.35)',
-    badgeText: '#67e8f9'
+    // 1. TCP vs UDP: Azul Cupertino & Cian
+    primaryRgb: '0, 113, 227',
+    secondaryRgb: '2, 132, 199',
+    accentHex: '#0071e3',
+    badgeBg: 'rgba(0, 113, 227, 0.10)',
+    badgeBorder: 'rgba(0, 113, 227, 0.25)',
+    badgeText: '#0369a1'
   },
   2: {
-    // 2. TCP vs UDP: Cyan & Esmeralda
-    primaryRgb: '56, 189, 248',
-    secondaryRgb: '16, 185, 129',
-    accentHex: '#38bdf8',
-    badgeBg: 'rgba(56, 189, 248, 0.15)',
-    badgeBorder: 'rgba(56, 189, 248, 0.35)',
-    badgeText: '#7dd3fc'
+    // 2. Puertos, Multiplexación & 5-Tupla: Violeta & Índigo
+    primaryRgb: '124, 58, 237',
+    secondaryRgb: '79, 70, 229',
+    accentHex: '#7c3aed',
+    badgeBg: 'rgba(124, 58, 237, 0.10)',
+    badgeBorder: 'rgba(124, 58, 237, 0.25)',
+    badgeText: '#6d28d9'
   },
   3: {
-    // 3. Segmentación & RFC: Violeta & Índigo
-    primaryRgb: '168, 85, 247',
-    secondaryRgb: '99, 102, 241',
-    accentHex: '#a855f7',
-    badgeBg: 'rgba(168, 85, 247, 0.15)',
-    badgeBorder: 'rgba(168, 85, 247, 0.35)',
-    badgeText: '#d8b4fe'
+    // 3. 3-Way Handshake y RST: Esmeralda & Cian
+    primaryRgb: '5, 150, 105',
+    secondaryRgb: '2, 132, 199',
+    accentHex: '#059669',
+    badgeBg: 'rgba(5, 150, 105, 0.10)',
+    badgeBorder: 'rgba(5, 150, 105, 0.25)',
+    badgeText: '#047857'
   },
   4: {
-    // 4. Ventana rwnd: Azul Eléctrico & Verde Neón
-    primaryRgb: '14, 165, 233',
-    secondaryRgb: '34, 197, 94',
-    accentHex: '#0ea5e9',
-    badgeBg: 'rgba(14, 165, 233, 0.15)',
-    badgeBorder: 'rgba(14, 165, 233, 0.35)',
-    badgeText: '#38bdf8'
+    // 4. 4-Way Teardown: Rosa Carmesí & Púrpura
+    primaryRgb: '225, 29, 72',
+    secondaryRgb: '147, 51, 234',
+    accentHex: '#e11d48',
+    badgeBg: 'rgba(225, 29, 72, 0.10)',
+    badgeBorder: 'rgba(225, 29, 72, 0.25)',
+    badgeText: '#be123c'
   },
   5: {
-    // 5. Checksum RFC 793/1071: Ámbar Dorado & Esmeralda
-    primaryRgb: '245, 158, 11',
-    secondaryRgb: '16, 185, 129',
-    accentHex: '#f59e0b',
-    badgeBg: 'rgba(245, 158, 11, 0.15)',
-    badgeBorder: 'rgba(245, 158, 11, 0.35)',
-    badgeText: '#fcd34d'
+    // 5. Congestión y Flujo: Naranja & Azul
+    primaryRgb: '234, 88, 12',
+    secondaryRgb: '2, 132, 199',
+    accentHex: '#ea580c',
+    badgeBg: 'rgba(234, 88, 12, 0.10)',
+    badgeBorder: 'rgba(234, 88, 12, 0.25)',
+    badgeText: '#c2410c'
   },
   6: {
-    // 6. Congestión cwnd & Sierra: Naranja Fuego & Rosa Coral
-    primaryRgb: '249, 115, 22',
-    secondaryRgb: '244, 63, 94',
-    accentHex: '#f97316',
-    badgeBg: 'rgba(249, 115, 22, 0.15)',
-    badgeBorder: 'rgba(249, 115, 22, 0.35)',
-    badgeText: '#fdba74'
+    // 6. Checksum TCP (Andrés): Ámbar & Azul
+    primaryRgb: '217, 119, 6',
+    secondaryRgb: '2, 132, 199',
+    accentHex: '#d97706',
+    badgeBg: 'rgba(217, 119, 6, 0.10)',
+    badgeBorder: 'rgba(217, 119, 6, 0.25)',
+    badgeText: '#b45309'
   },
   7: {
-    // 7. 3-Way Handshake: Verde Neón & Cyan
-    primaryRgb: '34, 197, 94',
-    secondaryRgb: '6, 182, 212',
-    accentHex: '#22c55e',
-    badgeBg: 'rgba(34, 197, 94, 0.15)',
-    badgeBorder: 'rgba(34, 197, 94, 0.35)',
-    badgeText: '#86efac'
-  },
-  8: {
-    // 8. 4-Way Teardown: Rosa Neón & Púrpura
-    primaryRgb: '244, 63, 94',
-    secondaryRgb: '147, 51, 234',
-    accentHex: '#f43f5e',
-    badgeBg: 'rgba(244, 63, 94, 0.15)',
-    badgeBorder: 'rgba(244, 63, 94, 0.35)',
-    badgeText: '#fda4af'
-  },
-  9: {
-    // 9. Puertos & Doble Salto Nginx: Azul Zafiro & Ámbar
-    primaryRgb: '59, 130, 246',
-    secondaryRgb: '245, 158, 11',
-    accentHex: '#3b82f6',
-    badgeBg: 'rgba(59, 130, 246, 0.15)',
-    badgeBorder: 'rgba(59, 130, 246, 0.35)',
-    badgeText: '#93c5fd'
-  },
-  10: {
-    // 10. Topología TP1 Los Corralitos: Esmeralda Profundo & Oro
-    primaryRgb: '16, 185, 129',
-    secondaryRgb: '234, 179, 8',
-    accentHex: '#10b981',
-    badgeBg: 'rgba(16, 185, 129, 0.15)',
-    badgeBorder: 'rgba(16, 185, 129, 0.35)',
-    badgeText: '#6ee7b7'
+    // 7. ¡FIN! Concierto de Cierre: Fucsia & Ámbar Dorado
+    primaryRgb: '219, 39, 119',
+    secondaryRgb: '217, 119, 6',
+    accentHex: '#db2777',
+    badgeBg: 'rgba(219, 39, 119, 0.10)',
+    badgeBorder: 'rgba(219, 39, 119, 0.25)',
+    badgeText: '#be185d'
   }
 };
 
